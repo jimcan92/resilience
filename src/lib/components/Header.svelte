@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import ThemeController from './ThemeController.svelte';
 
 	let currentPath = $derived($page.url.pathname);
 </script>
@@ -33,6 +34,6 @@
 				History
 			</a>
 		</nav>
-		<!-- <ThemeController /> -->
+		<ThemeController />
 	</div>
 </header>
