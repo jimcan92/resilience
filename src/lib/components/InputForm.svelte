@@ -186,37 +186,40 @@
 
 					<MapPicker bind:latitude={form.site.latitude} bind:longitude={form.site.longitude} />
 
-					<div class="rounded-lg border border-primary/30 bg-primary/5 p-4">
+					<div class="flex flex-col gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
 						<h3 class="text-sm font-semibold text-base-content">
 							Distance to nearest active fault
 						</h3>
-						<p class="mt-1 text-xs text-base-content/60">
-							Open HazardHunterPH with your selected coordinates, then copy the fault distance from
-							"Seismic Hazard" → "Ground Shaking" and paste it below.
+						<p class="text-xs text-base-content/60">
+							Open HazardHunterPH then in Location Tools open Long-Lat Coordinate. Input copied
+							longitude and latitude then click search. When the location is found, the assessment
+							panel will show in the right, find the 'Nearest Active Fault' and copy the value in
+							km, then paste below.
 						</p>
 
-						<button
-							type="button"
-							onclick={openHazardHunter}
-							class="btn mt-3 btn-block btn-outline btn-info btn-sm"
-						>
-							Open HazardHunterPH
-						</button>
-
-						<label
-							class="input-bordered input mt-3 flex w-full items-center gap-2 {errors.faultDistance
-								? 'input-error'
-								: 'input-primary'}"
-						>
-							<input
-								type="number"
-								step="0.1"
-								bind:value={form.site.faultDistance}
-								placeholder="e.g., 5.2"
-								class="grow"
-							/>
-							<span class="text-xs text-base-content/50">km</span>
-						</label>
+						<div class="flex flex-col gap-3 lg:flex-row">
+							<button
+								type="button"
+								onclick={openHazardHunter}
+								class="btn grow btn-outline btn-info"
+							>
+								Open HazardHunterPH
+							</button>
+							<label
+								class="input-bordered input flex w-full max-w-full grow items-center gap-2 lg:w-max {errors.faultDistance
+									? 'input-error'
+									: 'input-primary'}"
+							>
+								<input
+									type="number"
+									step="0.1"
+									bind:value={form.site.faultDistance}
+									placeholder="e.g., 5.2"
+									class="grow"
+								/>
+								<span class="text-xs text-base-content/50">km</span>
+							</label>
+						</div>
 						{#if errors.faultDistance}
 							<span class="mt-1 block text-xs text-error">{errors.faultDistance}</span>
 						{/if}

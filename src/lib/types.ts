@@ -165,3 +165,15 @@ export function dangerLevelLabel(level: DangerLevel): string {
 	};
 	return labels[level];
 }
+
+export enum AlertType {
+	success = 'success',
+	error = 'error',
+	warning = 'warning',
+	info = 'info'
+}
+
+export type AppAlert = {
+	type: AlertType;
+	message: string;
+};

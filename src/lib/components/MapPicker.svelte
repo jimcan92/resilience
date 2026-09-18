@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { appStatus } from '$lib/states/status.svelte';
+	import { AlertType } from '$lib/types';
 	import type * as LType from 'leaflet';
 	import { onDestroy, onMount } from 'svelte';
 
@@ -122,10 +124,17 @@
 		navigator.clipboard
 			.writeText(text)
 			.then(() => {
-				alert(`Latitude copied: ${text}`);
+				// alert(`Latitude copied: ${text}`);
+				// toastMessage = `Latitude copied: ${text}`;
+				appStatus.addAlert({ type: AlertType.success, message: `Latitude copied: ${text}` });
 			})
 			.catch(() => {
-				alert(`Latitude: ${text}\n\nManually copy.`);
+				// alert(`Latitude: ${text}\n\nManually copy.`);
+				// toastMessage = `Latitude: ${text}\n\nManually copy.`;
+				appStatus.addAlert({
+					type: AlertType.error,
+					message: 'Error copying latitude to clipboard.'
+				});
 			});
 	}
 
@@ -135,10 +144,15 @@
 		navigator.clipboard
 			.writeText(text)
 			.then(() => {
-				alert(`Longitude copied: ${text}`);
+				// alert(`Longitude copied: ${text}`);
+				appStatus.addAlert({ type: AlertType.success, message: `Longitude copied: ${text}` });
 			})
 			.catch(() => {
-				alert(`Longitude: ${text}\n\nManually copy.`);
+				// alert(`Longitude: ${text}\n\nManually copy.`);
+				appStatus.addAlert({
+					type: AlertType.error,
+					message: 'Error copying longitude to clipboard.'
+				});
 			});
 	}
 </script>
@@ -147,23 +161,9 @@
 	<div class="flex flex-wrap items-center justify-between gap-2">
 		<span class="label-text font-medium">Click on the map to set location</span>
 
-		<div class="flex flex-wrap gap-2">
-			<button type="button" class="btn btn-outline btn-xs" onclick={useMyLocation}>
-				Use my location
-			</button>
-
-			<button type="button" class="btn btn-outline btn-xs" onclick={copyLatitude}>
-				Copy latitude
-			</button>
-
-			<button type="button" class="btn btn-outline btn-xs" onclick={copyLongitude}>
-				Copy longitude
-			</button>
-
-			<button type="button" class="btn btn-info btn-xs" onclick={openHazardHunter}>
-				Open HazardHunterPH
-			</button>
-		</div>
+		<button type="button" class="btn btn-outline btn-xs" onclick={useMyLocation}>
+			Use my location
+		</button>
 	</div>
 
 	<div
@@ -172,15 +172,15 @@
 	></div>
 
 	<div class="font-data grid grid-cols-2 gap-2 text-xs">
-		<div class="rounded bg-base-200 p-2 text-center">
+		<button type="button" class="rounded bg-base-200 p-2 text-center" onclick={copyLatitude}>
 			<span class="font-medium">Latitude:</span>
 			{latitude.toFixed(6)}
-		</div>
+		</button>
 
-		<div class="rounded bg-base-200 p-2 text-center">
+		<button type="button" class="rounded bg-base-200 p-2 text-center" onclick={copyLongitude}>
 			<span class="font-medium">Longitude:</span>
 			{longitude.toFixed(6)}
-		</div>
+		</button>
 	</div>
 
 	<div class="alert text-xs alert-info">

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.svg';
 	import Header from '$lib/components/Header.svelte';
+	import { appStatus } from '$lib/states/status.svelte';
 	import { onMount } from 'svelte';
 	import './layout.css';
 
@@ -74,3 +75,19 @@
 		</div>
 	</footer>
 </div>
+
+{#if appStatus.alert}
+	<div class="toast toast-end toast-bottom z-50">
+		<div class="alert alert-{appStatus.alert.type} shadow-lg">
+			<span class="text-sm">{appStatus.alert.message}</span>
+			<button
+				type="button"
+				class="btn btn-ghost btn-xs"
+				onclick={appStatus.remove}
+				aria-label="Dismiss"
+			>
+				✕
+			</button>
+		</div>
+	</div>
+{/if}
