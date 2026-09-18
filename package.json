@@ -26,6 +26,7 @@
 		"svelte": "^5.56.1",
 		"svelte-check": "^4.6.0",
 		"tailwindcss": "^4.3.0",
+		"theme-change": "^3.0.4",
 		"typescript": "^6.0.3",
 		"vite": "^8.0.16"
 	},
