@@ -24,17 +24,25 @@ const soils = soilFactors as SoilFactorTable;
  * ln(PGA) = c1 + c2*(M-6) + c3*(M-6)^2 + c4*ln(R) + c5*R + c6*V_s30
  */
 export function estimatePGA(magnitude: number, distanceKm: number, soilType: SoilType): number {
-	const M = magnitude;
-	const R = Math.sqrt(distanceKm ** 2 + 6 ** 2); // Distance with depth correction
+	// Validate inputs
+	if (!magnitude || magnitude <= 0) {
+		console.warn('Invalid magnitude:', magnitude);
+		return 0;
+	}
+	if (!distanceKm || distanceKm < 0) {
+		console.warn('Invalid distance:', distanceKm);
+		return 0;
+	}
 
-	// Boore-Atkinson (2008) simplified
+	const M = magnitude;
+	const R = Math.sqrt(distanceKm ** 2 + 6 ** 2); // Always > 0
+
 	const lnPGA =
 		gmpe.c1 +
 		gmpe.c2 * (M - 6) +
 		gmpe.c3 * (M - 6) ** 2 +
-		gmpe.c4 * Math.log(R) +
-		gmpe.c5 * R +
-		gmpe.c6;
+		gmpe.c4 * Math.log(R) + // R > 0, OK
+		gmpe.c5 * R;
 
 	const pgaRock = Math.exp(lnPGA);
 	const soilFactor = soils[soilType] ?? 1.0;

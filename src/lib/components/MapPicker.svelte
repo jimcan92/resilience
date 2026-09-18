@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { env } from '$env/dynamic/public';
 	import type * as LType from 'leaflet';
 	import { onDestroy, onMount } from 'svelte';
 
@@ -9,20 +8,6 @@
 	let map: LType.Map | null = null;
 	let marker: LType.Marker | null = null;
 	let L: typeof LType | null = null;
-
-	// ✅ SvelteKit way — mo-work sa dev ug production
-	const MAPTILER_KEY = env.PUBLIC_MAPTILER_KEY;
-
-	console.log('🔑 MapTiler Key:', MAPTILER_KEY);
-
-	// let { latitude = $bindable(14.5995), longitude = $bindable(120.9842) } = $props();
-
-	// let mapContainer!: HTMLDivElement;
-	// let map: LType.Map | null = null;
-	// let marker: LType.Marker | null = null;
-	// let L: typeof LType | null = null;
-
-	// const MAPTILER_KEY = import.meta.env.PUBLIC_MAPTILER_KEY;
 
 	// ---------- Tile Layers ----------
 	const googleSatellite = () =>
@@ -38,9 +23,9 @@
 		});
 
 	const streetsLayer = () =>
-		L!.tileLayer(`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, {
-			maxZoom: 19,
-			attribution: '© MapTiler © OpenStreetMap contributors'
+		L!.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+			maxZoom: 21,
+			attribution: '© Google'
 		});
 
 	// ---------- Initialize Map ----------
