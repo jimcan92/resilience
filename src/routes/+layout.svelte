@@ -2,11 +2,42 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import Header from '$lib/components/Header.svelte';
 	import { onMount } from 'svelte';
-	import { themeChange } from 'theme-change';
 	import './layout.css';
 
 	onMount(() => {
-		themeChange();
+		if ('serviceWorker' in navigator) {
+			navigator.serviceWorker.ready.then((registration) => {
+				// Check for updates every 60 seconds
+				setInterval(() => {
+					registration.update();
+				}, 60000);
+
+				// Listen for new service worker
+				registration.addEventListener('updatefound', () => {
+					const newWorker = registration.installing;
+					if (!newWorker) return;
+
+					newWorker.addEventListener('statechange', () => {
+						if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+							// New version available — reload
+							if (confirm('New version available. Reload to update?')) {
+								newWorker.postMessage({ type: 'SKIP_WAITING' });
+								window.location.reload();
+							}
+						}
+					});
+				});
+			});
+
+			// Listen for controller change (new SW activated)
+			let refreshing = false;
+			navigator.serviceWorker.addEventListener('controllerchange', () => {
+				if (!refreshing) {
+					refreshing = true;
+					window.location.reload();
+				}
+			});
+		}
 	});
 
 	let { children } = $props();
