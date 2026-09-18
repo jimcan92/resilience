@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import ThemeController from './ThemeController.svelte';
 
-	let currentPath = $derived($page.url.pathname);
+	let currentPath = $derived(page.url.pathname);
 </script>
 
 <header class="sticky top-0 z-10 border-b border-base-300 bg-base-100/95 backdrop-blur">

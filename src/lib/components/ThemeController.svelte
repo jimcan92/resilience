@@ -1,5 +1,12 @@
 <script lang="ts">
 	import themes from 'daisyui/functions/themeOrder';
+
+	function changeTheme(themeName: string) {
+		// I-save sa localStorage
+		localStorage.setItem('theme', themeName);
+		// I-apply dayon sa HTML element
+		document.documentElement.setAttribute('data-theme', themeName);
+	}
 </script>
 
 <div class="dropdown dropdown-end">
@@ -20,7 +27,11 @@
 		class="dropdown-content z-1 max-h-80 gap-2 space-y-1 overflow-auto rounded-box bg-base-300 p-2 shadow-2xl"
 	>
 		{#each themes as theme}
-			<li data-theme={theme} class="rounded hover:bg-base-200">
+			<button
+				data-theme={theme}
+				class="w-full rounded hover:bg-base-200"
+				onclick={() => changeTheme(theme)}
+			>
 				<label class="flex cursor-pointer items-center gap-2 px-3 py-1">
 					<input
 						data-theme={theme}
@@ -36,7 +47,7 @@
 					<span class="w-2 self-stretch rounded bg-neutral"></span>
 					<span class="rounded-box border border-primary px-3 py-1">{theme.toUpperCase()}</span>
 				</label>
-			</li>
+			</button>
 		{/each}
 	</ul>
 </div>
