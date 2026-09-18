@@ -1,0 +1,30 @@
+{
+    "earthquake": {
+        "critical": [
+            "🔴 CRITICAL: Consider base isolation or energy dissipation systems.",
+            "🔴 Engage a licensed structural engineer for seismic detailing."
+        ],
+        "high": [
+            "🟠 HIGH: Reinforce ductile detailing of beams and columns."
+        ]
+    },
+    "typhoon": {
+        "critical": [
+            "🔴 CRITICAL: Reinforce roof connections and cladding for high wind uplift.",
+            "🔴 Use impact-resistant glazing in wind-borne debris regions."
+        ],
+        "high": [
+            "🟠 HIGH: Check roof sheathing and fastener spacing per NSCP 2015."
+        ]
+    },
+    "fault": {
+        "veryClose": "⚠️ Site is within 5 km of an active fault. Consider relocating or using high-ductility design.",
+        "close": "⚠️ Site is within 10 km of an active fault. Apply near-source factors."
+    },
+    "soil": {
+        "soft": "⚠️ Soft soil may amplify ground motion. Conduct geotechnical investigation."
+    },
+    "general": [
+        "ℹ️ These are preliminary recommendations only. Consult a licensed structural engineer."
+    ]
+}
