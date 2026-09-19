@@ -4,7 +4,7 @@
 	import type * as LType from 'leaflet';
 	import { onDestroy, onMount } from 'svelte';
 
-	let { latitude = $bindable(14.5995), longitude = $bindable(120.9842) } = $props();
+	let { latitude = $bindable(9.865416), longitude = $bindable(123.394688) } = $props();
 
 	let mapContainer!: HTMLDivElement;
 	let map: LType.Map | null = null;
@@ -46,13 +46,13 @@
 			zoomControl: true
 		});
 
-		googleSatellite().addTo(map);
-
 		const baseMaps = {
 			Satellite: googleSatellite(),
 			Hybrid: googleHybrid(),
 			Streets: streetsLayer()
 		};
+
+		baseMaps.Hybrid.addTo(map);
 
 		L.control.layers(baseMaps, undefined, { position: 'topright' }).addTo(map);
 		L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);

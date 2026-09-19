@@ -1,5 +1,7 @@
 // ============================================
 // R.E.S.I.L.I.E.N.C.E. — Type Definitions
+// Risk Evaluation and Spatial Integration for Load-
+// and Impact-Enhanced Networked Construction Engineering
 // ============================================
 
 // ---------- Hazard Levels ----------
@@ -19,7 +21,7 @@ export type ExposureCategory = 'B' | 'C' | 'D';
 export interface SiteInput {
 	latitude: number;
 	longitude: number;
-	faultDistance: number; // km (manual input from PHIVOLCS FaultFinder)
+	faultDistance: number; // km (from PHIVOLCS FaultFinder / HazardHunterPH)
 	soilType: SoilType;
 }
 
@@ -36,12 +38,14 @@ export interface BuildingInput {
 
 // ---------- Hazard Input ----------
 export interface HazardInput {
-	windSpeed: number; // kph (from PAGASA map)
-	magnitude: number; // earthquake magnitude
+	windSpeed: number; // kph (PAGASA / NSCP 2015 wind map)
+	magnitude: number; // earthquake magnitude (Mw)
+	exposure?: ExposureCategory; // Exposure B (urban/suburban), C (open), D (coastal)
 }
 
 // ---------- Combined Input ----------
 export interface AssessmentInput {
+	modelParameters?: ModelParameters;
 	site: SiteInput;
 	building: BuildingInput;
 	hazard: HazardInput;
@@ -49,16 +53,22 @@ export interface AssessmentInput {
 
 // ---------- Calculation Details ----------
 export interface AssessmentDetails {
-	pga: number; // Peak Ground Acceleration (g)
-	windPressure: number; // Wind pressure (N/m²)
+	resolvedParameters?: ResolvedModelParameters;
+	pga: number; // Peak Ground Acceleration in g (Fukushima & Tanaka 1990)
+	pgaGal: number; // Acceleration in cm/s² (gal)
+	windPressure: number; // Velocity pressure qz in Pa (NSCP 2015)
+	fragilityProbability: number; // P(DS >= ds | IM) from 0 to 1
 	haversineDistance: number | null;
+	parameters?: AssessmentInput;
 }
 
 // ---------- Assessment Result ----------
 export interface AssessmentResult {
-	earthquakeScore: number; // 0-100
-	typhoonScore: number; // 0-100
-	resilienceIndex: number; // 0-1
+	modelVersion?: string;
+	earthquakeScore: number; // HE (0-100)
+	typhoonScore: number; // HT (0-100)
+	buildingResilienceScore: number; // BRS (0-100)
+	resilienceIndex: number; // 0-1 (for UI radial progress display)
 	dangerLevel: DangerLevel;
 	recommendations: string[];
 	details: AssessmentDetails;
@@ -75,6 +85,7 @@ export interface SavedAssessment {
 // ---------- Risk Calculation ----------
 export interface RiskResult {
 	risk: number; // 0-100
+	buildingResilienceScore: number; // BRS (0-100)
 	resilienceIndex: number; // 0-1
 	dangerLevel: DangerLevel;
 }
@@ -114,16 +125,21 @@ export function isExposureCategory(value: string): value is ExposureCategory {
 }
 
 // ============================================
-// Utility Types
+// Utility Functions
 // ============================================
 
 /**
- * Convert risk score to danger level
+ * Convert risk score (0-100) to danger level
+ * 0-25: LOW, 26-50: MODERATE, 51-75: HIGH, 76-100: CRITICAL
  */
 export function scoreToDangerLevel(score: number): DangerLevel {
-	if (score <= 25) return 'LOW';
-	if (score <= 50) return 'MODERATE';
-	if (score <= 75) return 'HIGH';
+	if (!Number.isFinite(score) || score < 0) {
+		throw new RangeError('Score must be finite and nonnegative.');
+	}
+	const clamped = Math.min(100, Math.max(0, score));
+	if (clamped <= 25) return 'LOW';
+	if (clamped <= 50) return 'MODERATE';
+	if (clamped <= 75) return 'HIGH';
 	return 'CRITICAL';
 }
 
@@ -137,7 +153,7 @@ export function dangerLevelColor(level: DangerLevel): string {
 		HIGH: 'error',
 		CRITICAL: 'error'
 	};
-	return colors[level];
+	return colors[level] ?? 'warning';
 }
 
 /**
@@ -150,7 +166,7 @@ export function dangerLevelEmoji(level: DangerLevel): string {
 		HIGH: '🟠',
 		CRITICAL: '🔴'
 	};
-	return emojis[level];
+	return emojis[level] ?? '🟡';
 }
 
 /**
@@ -163,7 +179,7 @@ export function dangerLevelLabel(level: DangerLevel): string {
 		HIGH: 'High Risk',
 		CRITICAL: 'Critical Risk'
 	};
-	return labels[level];
+	return labels[level] ?? 'Moderate Risk';
 }
 
 export enum AlertType {
@@ -177,3 +193,23 @@ export type AppAlert = {
 	type: AlertType;
 	message: string;
 };
+
+export type ParameterMode = 'default' | 'custom';
+export interface ModelParameters {
+	soilMode: ParameterMode;
+	soilMultiplier: number;
+	kzt: number;
+	kd: number;
+	fragilityMode: ParameterMode;
+	theta: number;
+	beta: number;
+	damageState: string;
+	reference: string;
+	pgaMin: number;
+	pgaMax: number;
+	earthquakeWeight: number; // percent
+}
+export interface ResolvedModelParameters extends ModelParameters {
+	kz: number;
+	typhoonWeight: number; // percent
+}

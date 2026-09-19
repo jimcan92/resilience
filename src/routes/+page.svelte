@@ -1,46 +1,35 @@
 <script lang="ts">
+	import { assess } from '$lib/engine/assessment';
 	import InputForm from '$lib/components/InputForm.svelte';
 	import ResultDashboard from '$lib/components/ResultDashboard.svelte';
 	import Toast from '$lib/components/Toast.svelte';
-	import { estimatePGA, pgaToScore } from '$lib/engine/pga';
-	import { generateRecommendations } from '$lib/engine/recommendations';
-	import { calculateRisk } from '$lib/engine/risk';
-	import { calculateWindPressure, windToScore } from '$lib/engine/wind';
 	import { saveAssessment } from '$lib/storage/localStorage';
 	import type { AssessmentInput, AssessmentResult } from '$lib/types';
 
 	let result = $state<AssessmentResult | null>(null);
+	let error = $state('');
 	let showSavedToast = $state(false);
 
 	function handleSubmit(input: AssessmentInput) {
-		const pga = estimatePGA(input.hazard.magnitude, input.site.faultDistance, input.site.soilType);
-		const earthquakeScore = pgaToScore(pga);
+		error = '';
+		try {
+			result = assess($state.snapshot(input));
 
-		const windPressure = calculateWindPressure(input.hazard.windSpeed, input.building.height, 'C');
-		const typhoonScore = windToScore(windPressure);
-
-		const { resilienceIndex, dangerLevel } = calculateRisk(earthquakeScore, typhoonScore);
-
-		const recommendations = generateRecommendations(input, earthquakeScore, typhoonScore);
-
-		result = {
-			earthquakeScore,
-			typhoonScore,
-			resilienceIndex,
-			dangerLevel,
-			recommendations,
-			details: { pga, windPressure, haversineDistance: null }
-		};
-
-		saveAssessment(input, result);
-		showSavedToast = true;
+			showSavedToast = saveAssessment($state.snapshot(input), result);
+			if (!showSavedToast) error = 'Calculated, but could not save assessment in this browser.';
+		} catch (cause) {
+			error = cause instanceof Error ? cause.message : 'Calculation failed.';
+		}
 	}
 
 	function handleReset() {
 		result = null;
+		error = '';
 	}
 </script>
 
+<svelte:head><title>Assessment | R.E.S.I.L.I.E.N.C.E.</title></svelte:head>
+{#if error}<p role="alert" class="alert alert-error">{error}</p>{/if}
 {#if !result}
 	<InputForm onSubmit={handleSubmit} />
 {:else}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ParameterSummary from '$lib/components/ParameterSummary.svelte';
 	import { clearAll, deleteAssessment, getAssessments } from '$lib/storage/localStorage';
 	import type { SavedAssessment } from '$lib/types';
 
@@ -21,6 +22,7 @@
 	}
 </script>
 
+<svelte:head><title>History | R.E.S.I.L.I.E.N.C.E.</title></svelte:head>
 <div class="space-y-4 py-6">
 	<div class="flex items-center justify-between">
 		<h2 class="font-display text-lg font-semibold">Saved assessments</h2>
@@ -41,16 +43,25 @@
 			{#each assessments as assessment (assessment.id)}
 				<div class="card border border-base-300 bg-base-100 shadow-sm">
 					<div class="card-body p-4 sm:p-5">
+						{#if assessment.result.details?.resolvedParameters}<details>
+								<summary class="cursor-pointer text-sm font-medium"
+									>Saved calculation parameters</summary
+								><ParameterSummary parameters={assessment.result.details.resolvedParameters} />
+							</details>{:else}<p class="text-xs text-base-content/60">
+								Legacy assessment — no resolved parameter snapshot; original scores preserved.
+							</p>{/if}
 						<div class="flex items-start justify-between gap-2">
 							<div>
 								<h3 class="font-display text-base font-semibold">
 									{assessment.result.dangerLevel}
 									<span class="font-data font-normal text-base-content/60"
-										>({(assessment.result.resilienceIndex * 100).toFixed(0)}%)</span
+										>(BRS {assessment.result.buildingResilienceScore ??
+											(assessment.result.resilienceIndex * 100).toFixed(0)}/100)</span
 									>
 								</h3>
 								<p class="text-xs text-base-content/50">
-									{new Date(assessment.date).toLocaleString()}
+									{new Date(assessment.date).toLocaleString()} · {assessment.result.modelVersion ??
+										'Legacy model — recalculate for comparison'}
 								</p>
 							</div>
 							<button
@@ -69,6 +80,13 @@
 							<div>Typhoon: {assessment.result.typhoonScore}</div>
 							<div>Fault: {assessment.input.site.faultDistance} km</div>
 							<div>Height: {assessment.input.building.height} m</div>
+							{#if assessment.result.modelVersion}<div>
+									qz: {(assessment.result.details.windPressure / 1000).toFixed(2)} kPa
+								</div>
+								<div>
+									Fragility: {(assessment.result.details.fragilityProbability * 100).toFixed(1)}%
+								</div>
+								<div>Exposure: {assessment.input.hazard.exposure ?? 'C'}</div>{/if}
 						</div>
 					</div>
 				</div>

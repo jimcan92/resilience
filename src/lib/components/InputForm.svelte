@@ -1,4 +1,11 @@
 <script lang="ts">
+	import AdvancedParameters from '$lib/components/AdvancedParameters.svelte';
+	import ParameterSummary from '$lib/components/ParameterSummary.svelte';
+	import {
+		defaultModelParameters,
+		parameterErrors,
+		resolveModelParameters
+	} from '$lib/engine/parameters';
 	import MapPicker from '$lib/components/MapPicker.svelte';
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import StepIndicator from '$lib/components/StepIndicator.svelte';
@@ -6,10 +13,16 @@
 
 	let { onSubmit }: { onSubmit: (input: AssessmentInput) => void } = $props();
 
-	let form = $state<AssessmentInput>({
+	let form = $state<
+		AssessmentInput & {
+			hazard: AssessmentInput['hazard'] & {
+				exposure: NonNullable<AssessmentInput['hazard']['exposure']>;
+			};
+		}
+	>({
 		site: {
-			latitude: 14.5995,
-			longitude: 120.9842,
+			latitude: 9.865416,
+			longitude: 123.394688,
 			faultDistance: 10,
 			soilType: 'medium'
 		},
@@ -24,10 +37,19 @@
 		},
 		hazard: {
 			windSpeed: 250,
-			magnitude: 7.0
+			magnitude: 7.0,
+			exposure: 'C'
 		}
 	});
 
+	let parameters = $state(defaultModelParameters());
+	let preview = $derived.by(() => {
+		try {
+			return resolveModelParameters({ ...form, modelParameters: parameters });
+		} catch {
+			return null;
+		}
+	});
 	const steps = ['Site', 'Building', 'Hazard', 'Review'];
 
 	let currentStep = $state(0);
@@ -61,6 +83,12 @@
 		{ value: 'irregular', label: 'Irregular' }
 	];
 
+	const exposureOptions = [
+		{ value: 'B', label: 'Exposure B (Urban/Suburban)' },
+		{ value: 'C', label: 'Exposure C (Open terrain)' },
+		{ value: 'D', label: 'Exposure D (Coastal/Flat water)' }
+	];
+
 	const soilTypeLabels: Record<string, string> = Object.fromEntries(
 		soilTypeOptions.map((o) => [o.value, o.label])
 	);
@@ -73,20 +101,29 @@
 	const configurationLabels: Record<string, string> = Object.fromEntries(
 		configurationOptions.map((o) => [o.value, o.label])
 	);
+	const exposureLabels: Record<string, string> = Object.fromEntries(
+		exposureOptions.map((o) => [o.value, o.label])
+	);
 
 	function validateSite(): Errors {
 		const e: Errors = {};
 		const fd = form.site.faultDistance;
-		if (fd === null || fd === undefined || Number.isNaN(fd) || fd < 0) {
+		if (!Number.isFinite(fd) || fd < 0) {
 			e.faultDistance = 'Enter the distance to the nearest active fault (0 or more km).';
 		}
+		const pe = parameterErrors(parameters);
+		if (pe.soilMultiplier) e.soilMultiplier = pe.soilMultiplier;
 		return e;
 	}
 
 	function validateBuilding(): Errors {
 		const e: Errors = {};
-		if (!form.building.height || form.building.height <= 0) {
-			e.height = 'Height must be greater than 0.';
+		if (
+			!Number.isFinite(form.building.height) ||
+			form.building.height <= 0 ||
+			form.building.height > 150
+		) {
+			e.height = 'Height must be greater than 0 and no more than 150 m.';
 		}
 		if (
 			!form.building.floors ||
@@ -95,10 +132,10 @@
 		) {
 			e.floors = 'Enter a whole number of floors (1 or more).';
 		}
-		if (!form.building.length || form.building.length <= 0) {
+		if (!Number.isFinite(form.building.length) || form.building.length <= 0) {
 			e.length = 'Length must be greater than 0.';
 		}
-		if (!form.building.width || form.building.width <= 0) {
+		if (!Number.isFinite(form.building.width) || form.building.width <= 0) {
 			e.width = 'Width must be greater than 0.';
 		}
 		return e;
@@ -106,12 +143,15 @@
 
 	function validateHazard(): Errors {
 		const e: Errors = {};
-		if (!form.hazard.windSpeed || form.hazard.windSpeed <= 0) {
+		if (!Number.isFinite(form.hazard.windSpeed) || form.hazard.windSpeed <= 0) {
 			e.windSpeed = 'Enter a design wind speed greater than 0.';
 		}
 		const mag = form.hazard.magnitude;
-		if (mag === null || mag === undefined || Number.isNaN(mag) || mag <= 0 || mag > 9.5) {
+		if (mag === null || mag === undefined || !Number.isFinite(mag) || mag < 0.1 || mag > 9.5) {
 			e.magnitude = 'Enter a magnitude between 0.1 and 9.5.';
+		}
+		for (const [key, message] of Object.entries(parameterErrors(parameters))) {
+			if (key !== 'soilMultiplier' && key !== 'soilMode') e[key] = message;
 		}
 		return e;
 	}
@@ -161,7 +201,7 @@
 			return;
 		}
 
-		onSubmit(form);
+		onSubmit({ ...form, modelParameters: parameters });
 	}
 
 	function openHazardHunter() {
@@ -175,7 +215,7 @@
 		<StepIndicator {steps} {currentStep} {maxReached} onStepClick={goToStep} />
 	</div>
 
-	<form onsubmit={handleFinalSubmit} class="space-y-6">
+	<form novalidate onsubmit={handleFinalSubmit} class="space-y-6">
 		{#if currentStep === 0}
 			<div class="card border border-base-300 bg-base-100 shadow-sm">
 				<div class="card-body gap-5">
@@ -232,6 +272,8 @@
 								<input
 									type="number"
 									step="0.1"
+									aria-label="Distance to nearest active fault in km"
+									min="0"
 									bind:value={form.site.faultDistance}
 									placeholder="e.g., 5.2"
 									class="grow"
@@ -254,12 +296,16 @@
 					</div>
 				</div>
 			</div>
+			<AdvancedParameters input={form} bind:parameters section="site" {errors} />
 		{:else if currentStep === 1}
 			<div class="card border border-base-300 bg-base-100 shadow-sm">
 				<div class="card-body gap-6">
 					<div>
 						<h2 class="font-display text-lg font-semibold">Building information</h2>
-						<p class="text-sm text-base-content/60">Describe the structure being assessed.</p>
+						<p class="text-sm text-base-content/60">
+							Describe the structure being assessed. Floors, length and width are recorded but do
+							not affect the current equations.
+						</p>
 					</div>
 
 					<div>
@@ -274,7 +320,7 @@
 										? 'input-error'
 										: ''}"
 								>
-									<input type="number" bind:value={form.building.height} class="grow" />
+									<input type="number" step="any" bind:value={form.building.height} class="grow" />
 									<span class="text-xs text-base-content/50">m</span>
 								</label>
 								{#if errors.height}<span class="mt-1 text-xs text-error">{errors.height}</span>{/if}
@@ -300,7 +346,7 @@
 										? 'input-error'
 										: ''}"
 								>
-									<input type="number" bind:value={form.building.length} class="grow" />
+									<input type="number" step="any" bind:value={form.building.length} class="grow" />
 									<span class="text-xs text-base-content/50">m</span>
 								</label>
 								{#if errors.length}<span class="mt-1 text-xs text-error">{errors.length}</span>{/if}
@@ -313,7 +359,7 @@
 										? 'input-error'
 										: ''}"
 								>
-									<input type="number" bind:value={form.building.width} class="grow" />
+									<input type="number" step="any" bind:value={form.building.width} class="grow" />
 									<span class="text-xs text-base-content/50">m</span>
 								</label>
 								{#if errors.width}<span class="mt-1 text-xs text-error">{errors.width}</span>{/if}
@@ -328,20 +374,26 @@
 						<div class="space-y-4">
 							<div>
 								<span class="mb-2 block text-sm text-base-content/80">Material</span>
-								<SegmentedControl
-									options={materialOptions}
+								<select
+									aria-label="Material"
+									class="select-bordered select w-full"
 									bind:value={form.building.material}
-									columnsClass="grid-cols-2 sm:grid-cols-4"
-								/>
+									>{#each materialOptions as option}<option value={option.value}
+											>{option.label}</option
+										>{/each}</select
+								>
 							</div>
 
 							<div>
 								<span class="mb-2 block text-sm text-base-content/80">Roof type</span>
-								<SegmentedControl
-									options={roofTypeOptions}
+								<select
+									aria-label="Roof type"
+									class="select-bordered select w-full"
 									bind:value={form.building.roofType}
-									columnsClass="grid-cols-2 sm:grid-cols-4"
-								/>
+									>{#each roofTypeOptions as option}<option value={option.value}
+											>{option.label}</option
+										>{/each}</select
+								>
 							</div>
 
 							<div>
@@ -362,10 +414,17 @@
 					<div>
 						<h2 class="font-display text-lg font-semibold">Hazard parameters</h2>
 						<p class="text-sm text-base-content/60">
-							Set the design-level earthquake and wind scenario.
+							Set the earthquake and wind scenario. Prefilled values are demonstration defaults.
 						</p>
 					</div>
 
+					<fieldset>
+						<legend class="mb-2 text-sm font-medium">Exposure category</legend><SegmentedControl
+							options={exposureOptions}
+							bind:value={form.hazard.exposure}
+							columnsClass="grid-cols-1 sm:grid-cols-3"
+						/>
+					</fieldset>
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<label class="form-control">
 							<span class="label-text mb-1">Design wind speed</span>
@@ -374,11 +433,11 @@
 									? 'input-error'
 									: ''}"
 							>
-								<input type="number" bind:value={form.hazard.windSpeed} class="grow" />
+								<input type="number" step="any" bind:value={form.hazard.windSpeed} class="grow" />
 								<span class="text-xs text-base-content/50">kph</span>
 							</label>
 							<span class="label-text-alt mt-1 block text-base-content/60"
-								>From PAGASA wind map (NSCP 2015)</span
+								>From the applicable NSCP 2015 wind-speed map</span
 							>
 							{#if errors.windSpeed}<span class="mt-1 text-xs text-error">{errors.windSpeed}</span
 								>{/if}
@@ -403,6 +462,7 @@
 					</div>
 				</div>
 			</div>
+			<AdvancedParameters input={form} bind:parameters section="hazard" {errors} />
 		{:else}
 			<div class="card border border-base-300 bg-base-100 shadow-sm">
 				<div class="card-body">
@@ -466,11 +526,14 @@
 								<dd>{form.hazard.windSpeed} kph</dd>
 								<dt class="text-base-content/50">Magnitude</dt>
 								<dd>{form.hazard.magnitude}</dd>
+								<dt class="text-base-content/50">Exposure</dt>
+								<dd>{exposureLabels[form.hazard.exposure ?? 'C']}</dd>
 							</dl>
 						</div>
 					</div>
 				</div>
 			</div>
+			{#if preview}<ParameterSummary parameters={preview} />{/if}
 		{/if}
 
 		<div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">

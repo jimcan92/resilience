@@ -1,0 +1,284 @@
+=== PAGE 1 ===
+R.E.S.I.L.I.E.N.C.E.: Risk Evaluation and Spatial Integration for Load- 
+and Impact-Enhanced Networked Construction Engineering 
+ 
+ 
+ 
+ 
+ 
+ 
+Becerro, Rich Mee 
+Dela Calzada, Jeush Francis Rey D. 
+Toquero, Jan Marie 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+MARK FEL JHON Y. MANLANGIT 
+Research Adviser 
+ 
+   September 2026 
+ 
+ 
+ 
+
+=== PAGE 2 ===
+INTRODUCTION 
+ Buildings are continuously exposed to natural hazards such as earthquakes and 
+typhoons, making structural resilience an important consideration in building planning and 
+design. Earthquakes can impose sudden ground-motion demands on structural systems, while 
+typhoons generate strong winds that can damage roofs, walls, openings, and other building 
+components. Because these hazards affect buildings in different ways, evaluating resilience 
+requires consideration of both hazard intensity and building characteris tics. Recent multi -
+hazard research emphasizes the importance of considering earthquake and wind hazards 
+together rather than evaluating a building against only one dominant hazard. Studies found 
+that a building designed primarily for one hazard may not nec essarily perform satisfactorily 
+against another, demonstrating the importance of multi-hazard assessment.  
+This issue is particularly relevant in the Philippines, where buildings are exposed to 
+frequent tropical cyclones and significant seismic hazards. Re search identified building 
+components and building typologies that are important for assessing vulnerability to extreme 
+wind loads, noting that severe -to-complete damage has occurred particularly in non -
+engineered low-rise buildings. Similarly, post -event research on the 2013 Bohol earthquake  
+used ground -motion simulations and a database of more than 25,000 damaged and 
+undamaged structures to develop and constrain building fragility and vulnerability models  
+(Bautista et. al., 2017).  
+However, these approach es are generally assessment methodologies, vulnerability 
+models, or specialized analytical frameworks , rather than a simplified web -based system that 
+accepts common building/site inputs and translates the resulting risk assessment into 
+preliminary design recommendations. 
+
+=== PAGE 3 ===
+Earthquake and typhoon vulnerability can be quantitatively assessed using established 
+mathematical models.  Buildings can be measured by how fragile it is if there was an 
+earthquake. Similarly, Philippine studies have shown that low-rise buildings are vulnerable to 
+typhoon-induced winds and have developed building classifications and empirical wind 
+vulnerability curves based on wind speed and observed damage. Moreover, multi -hazard 
+assessment frameworks emphasize the importance of considering  both earthquake and wind 
+hazards, since the dominant risk can vary depending on the building’s characteristics, site 
+conditions, and performance requirements. These studies support the use of mathematical 
+models to evaluate and compare the resilience of buildings against multiple hazards. 
+Existing studies have developed sophisticated models for individual hazards. 
+However, there remains a need for a student-accessible computational framework that 
+integrates earthquake and typhoon vulnerability into a unified building-level assessment.  
+This study aims to develop a web -based mathematical model that evaluates the 
+earthquake and typhoon resilience of a proposed building based on selected site and building  
+characteristics and generates preliminary design recomm endations based on the resulting risk 
+assessment. Specifically, the model will integrate established mathematical approaches for 
+seismic hazard/vulnerability, wind or typhoon vulnerability, spatial/site risk, and multi -
+criteria weighting. The resulting risk values will be converted into a resilience index and used 
+by a rule -based recommendation component to identify building characteristics that may 
+require improvement. The system is intended as a preliminary mathematical decision-support 
+tool, not as a rep lacement for professional structural engineering design or code -compliant 
+structural calculations. 
+ 
+
+=== PAGE 4 ===
+ The main objective of this study is to develop and evaluate a web -based 
+mathematical model that assesses building resilience against earthquake and typhoon hazards 
+and generates corresponding design recommendations. The proposed model is designed to 
+integrate relevant site and building characteristics, apply established mathematical and 
+computational models to determine hazard and vulnerability levels, and provide a resilience 
+index that can guide preliminary building design decisions. Specifically, this study seeks to 
+answer the following questions: 
+1. What site and building characteristics are significant inputs for assessing building 
+resilience against earthquake and typhoon hazards?  
+2. How can established mathematical models for earthquake and typhoon hazards be 
+integrated into a web-based mathematical model for building resilience assessment?  
+3. How can the proposed model determine an overall Building Resilience Index from the 
+calculated earthquake and typhoon risk factors?  
+4. How do changes in site and building characteristics affect the resulting Building 
+Resilience Index?  
+5. How can the calcula ted risk levels and resilience index be used to generate 
+appropriate preliminary design recommendations for improving building resilience? 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 5 ===
+FRAMEWORK 
+Mathematical Concepts 
+The first mathematical component of the model will be GIS buffer and spatial 
+analysis, which will be used to determine the proximity of the proposed building site to 
+identified active fault lines. The geographic coordinates of the proposed building location 
+will be compared with the location of active faults, and a spatial distance  analysis will be 
+performed. The distance obtained from the GIS analysis can be used as a site -related factor in 
+the earthquake assessment. The purpose of this component is to identify whether the 
+proposed building is located relatively close to an active fault and therefore requires greater 
+consideration in the seismic assessment. 
+The second mathematical component will be the Peak Ground Acceleration (PGA) 
+model, which will represent the intensity of expected earthquake ground motion at the 
+proposed building site. PGA will be used as the primary numerical indicator for the 
+earthquake hazard component. The model will obtain the necessary seismic parameters, such 
+as earthquake magnitude, distance from the seismic source, and site or soil characteristics, 
+and use an ap propriate published ground -motion relationship to estimate the expected PGA. 
+The resulting PGA value will then be converted into a standardized earthquake hazard score 
+so that it can be combined with the typhoon hazard score. 
+The general form of the ground-motion relationship may be expressed as: 
+log(PGA) = 0.41M − log(R + 0.032 × 100.41M) − 0.0034R + 1.30 
+
+=== PAGE 6 ===
+Where PGA is the peak ground acceleration, M is the magnitude, and R is the 
+distance from the fault to the site in kilo meters (Km) that can be gathered from PHIVOLCS 
+data. 
+After obtaining the PGA, the value will be transformed into an earthquake hazard 
+score:a simple min–max normalization is: 
+   
+          
+              
+where (H E) represents the earthquake hazard score . A higher PGA value will 
+correspond to a greater earthquake ground -motion demand and, consequently, a higher 
+earthquake hazard score within the model. 
+The third mathematical component will be the NSCP-based wind-load calculation , 
+which will be used to estimate the wind demand associated with typhoon conditions. The 
+proposed building's location, height, dimensions, exposure characteristics, and other required 
+parameters will be entered into the wind -load equations prescribed by the applicable NSCP 
+provisions. Instead of treating the NSCP as a general numerical typhoon -risk formula, the 
+study will use its wind provisions to calculate the wind pressure or wind load acting on the 
+proposed building. This calculated wind demand will then be transformed into a standardized 
+typhoon or wind hazard score. 
+ 
+ 
+In generalized form, the resulting wind pressure may be represented as: 
+                  
+
+=== PAGE 7 ===
+where qz is the calculated wind velocity pressure at height z in N/m², Kz is the 
+velocity-pressure exposure coefficient based on the building height and exposure category, 
+Kzt is the topographic factor accounting for effects of hills, ridges, or escarpments, Kd is the 
+wind-directionality factor, and V is the basic wind speed in m/s obtained from the NSCP 
+2015 wind-speed map. 
+The calculated wind pressure or wind demand will then be converted into a typhoon 
+hazard score: 
+ 
+The fourth mathematical component will be the overall risk and resilience calculation. 
+After the earthquake hazard score and typhoon hazard score have been obtained, the two 
+hazard components will be combined using a weighted scoring method. This will allow the 
+model to represent the contribution of both earthquake and typhoon -related hazards in a 
+single overall assessment. The weights assigned to the earthquake and typhoon components 
+will be established before implementation and must be justified by the researchers using the 
+study's methodology and supporting literature. 
+              (           )  
+where BRS is the overall Building Resilience Score,  HE is the Earthquake Hazard 
+Score, HT is the Typhoon Hazard Score, wE is the weight assigned to earthquake hazard, and 
+wT is the weight assigned to typhoon hazard. The weights satisfy  wE+wT=1. When equal 
+weighting is used,  wE=0.50 and wT=0.50, indicating that earthquake and typhoon hazards 
+contribute equally to the overall resilience score. A higher BRS indicates lower combined 
+
+
+=== PAGE 8 ===
+hazard exposure within the model, while a lower BRS indicates higher combined hazard 
+exposure. 
+Data Collection 
+The data collection phase will involve gathering the site, geographic, seismic, wind, 
+and building characteristics required by the m athematical model. Site information will 
+include the location of the proposed building, lot dimensions, soil type, and distance or 
+proximity to active fault lines. Geographic coordinates will be used for GIS processing and 
+fault-proximity analysis. Active fault information will be obtained from appropriate 
+authoritative geological or seismic sources, while soil information will be collected from 
+available site or geotechnical information appropriate to the study. 
+Building information will include the propos ed building height, number of floors, building 
+dimensions, building configuration, building materials, and roof type. These variables will be 
+converted into the numerical or categorical formats required by the mathematical model. The 
+building characteristi cs will be particularly important in the wind assessment because 
+building geometry, height, exposure, and other characteristics influence the calculated wind 
+demand. 
+Seismic and wind -related data will also be collected for the mathematical calculations. 
+Earthquake-related information will include the parameters required by the selected PGA or 
+ground-motion model, while wind-related information will include the design wind speed and 
+the applicable site and building parameters required by the NSCP wind provis ions. The 
+collected data will be checked for consistency, completeness, units, and compatibility with 
+the equations used in the model. 
+
+=== PAGE 9 ===
+Exploratory and Spatial Data Analysis 
+Before the mathematical calculations are performed, the collected data will undergo  
+exploratory and spatial analysis. Numerical variables such as building height, lot dimensions, 
+distance from faults, PGA, and calculated wind pressure will be examined to identify 
+missing, inconsistent, or unrealistic values. Categorical variables such as  soil type, building 
+material, roof type, and building configuration will be encoded into appropriate numerical 
+categories where required by the model. 
+GIS analysis will also be conducted to visualize the relationship between the proposed 
+building location  and active fault lines. The spatial analysis will provide a geographical 
+representation of fault proximity and will support the earthquake -risk assessment. The 
+purpose of this stage is to ensure that the data entering the mathematical model are properly 
+prepared and that the spatial relationships relevant to the study are correctly represented. 
+Model Development 
+The model development phase will integrate the different mathematical components 
+into one web -based system. The first stage of the computational p rocess will receive the 
+proposed building location and perform GIS -based fault -proximity analysis. The resulting 
+spatial information will then be used together with the required seismic parameters for the 
+PGA calculation. 
+The earthquake component will calc ulate the expected PGA using the selected 
+ground-motion relationship. The calculated PGA will then be converted into an earthquake 
+hazard score using the predefined normalization or scoring function. The resulting earthquake 
+score will become one of the two primary hazard indicators used by the overall model. 
+
+=== PAGE 10 ===
+The wind or typhoon component will process the building and site characteristics 
+required by the NSCP wind provisions. The system will calculate the applicable wind 
+pressure or wind demand and subsequently transform the result into a standardized typhoon 
+hazard score. This will provide the second primary hazard indicator of the model. 
+The resulting o verall score will be classified according to predetermined risk or 
+resilience categories established by the researchers. The classification thresholds must be 
+defined before evaluation and supported by the methodology rather than being arbitrarily 
+selected after observing the results. 
+The final computational stage will be the AI-based recommendation generation 
+process. The system will provide the calculat ed earthquake and typhoon hazard scores 
+together with the relevant proposed building characteristics to an artificial intelligence model. 
+The AI model will analyze these inputs and generate preliminary building resilience 
+recommendations based on the ident ified hazard conditions and the characteristics of the 
+proposed building. 
+Model Validation and Evaluation 
+The developed mathematical model will undergo validation to determine whether its 
+calculations are correctly implemented and whether the outputs behave consistently wi th the 
+mathematical relationships used. Individual calculations for distance, PGA, wind pressure, 
+hazard scores, and the overall risk or resilience index will be tested using known or manually 
+calculated sample cases. The web -based implementation will then  be checked against these 
+reference calculations to determine whether the system produces the expected results. 
+Sensitivity analysis will also be performed to determine how changes in the input 
+variables affect the resulting hazard and resilience scores. Selected variables, such as distance 
+
+=== PAGE 11 ===
+from the seismic source, soil condition, building height, building dimensions, and wind 
+speed, may be varied while keeping other variables constant. The resulting changes in the 
+model outputs will be examined to determin e whether the system responds logically to 
+changes in important input parameters. 
+The recommendation component will also be evaluated by testing different 
+combinations of earthquake and typhoon hazard levels and observing whether the system 
+produces the co rresponding predefined recommendations. The web -based system itself will 
+additionally be evaluated in terms of functionality, calculation accuracy, consistency of 
+outputs, and usability. These evaluations will help determine whether the proposed 
+mathematical model operates according to its intended computational framework. 
+  
+
+=== PAGE 12 ===
+ 
+
+
+=== PAGE 13 ===
+ 
+
+
+=== PAGE 14 ===
+ 
+
+
+=== PAGE 15 ===
+ 
+
+
+=== PAGE 16 ===
+ 
+
+
+=== PAGE 17 ===
+ 
+
+

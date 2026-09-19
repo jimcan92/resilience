@@ -1,67 +1,125 @@
-import type { AssessmentInput } from '$lib/types';
+// =========================================================================
+// Preliminary Engineering Design Recommendations Generator
+// Reference: Page 10 of R.E.S.I.L.I.E.N.C.E. Research Paper
+// =========================================================================
+
+import type { AssessmentInput, DangerLevel } from '$lib/types';
 
 export function generateRecommendations(
 	input: AssessmentInput,
 	earthquakeScore: number,
-	typhoonScore: number
+	typhoonScore: number,
+	dangerLevel?: DangerLevel
 ): string[] {
 	const recs: string[] = [];
 	const { site, building } = input;
 
-	// Earthquake recommendations
-	if (earthquakeScore >= 75) {
-		recs.push('🔴 CRITICAL: Consider base isolation or energy dissipation systems.');
-		recs.push('🔴 Engage a licensed structural engineer for seismic detailing.');
-	} else if (earthquakeScore >= 50) {
-		recs.push('🟠 HIGH: Reinforce ductile detailing of beams and columns.');
+	// ---------- 1. Earthquake Severity Recommendations ----------
+	if (earthquakeScore > 75) {
+		recs.push(
+			'🔴 CRITICAL SEISMIC: Site experiences severe ground motion demand. Consider base isolation or supplemental damping.'
+		);
+		recs.push(
+			'🔴 Engage a licensed structural engineer for special seismic detailing per NSCP Chapter 2.'
+		);
+	} else if (earthquakeScore > 50) {
+		recs.push(
+			'🟠 HIGH SEISMIC: Provide ductile detailing for beam-column joints and adequate confinement reinforcement.'
+		);
+	} else if (earthquakeScore > 25) {
+		recs.push(
+			'🟡 MODERATE SEISMIC: Standard ductile detailing required. Ensure anchorages meet code provisions.'
+		);
 	}
 
-	// Fault proximity
+	// ---------- 2. Fault Proximity & Geotechnical ----------
 	if (site.faultDistance < 5) {
 		recs.push(
-			'⚠️ Site is within 5 km of an active fault. Consider relocating or using high-ductility design.'
+			'⚠️ NEAR-FAULT ZONE: Located within 5 km of an active fault. Apply near-source amplification factors (Na, Nv).'
 		);
 	} else if (site.faultDistance < 10) {
-		recs.push('⚠️ Site is within 10 km of an active fault. Apply near-source factors.');
-	}
-
-	// Soil type
-	if (site.soilType === 'soft') {
-		recs.push('⚠️ Soft soil may amplify ground motion. Conduct geotechnical investigation.');
-	}
-
-	// Typhoon recommendations
-	if (typhoonScore >= 75) {
-		recs.push('🔴 CRITICAL: Reinforce roof connections and cladding for high wind uplift.');
-		recs.push('🔴 Use impact-resistant glazing in wind-borne debris regions.');
-	} else if (typhoonScore >= 50) {
-		recs.push('🟠 HIGH: Check roof sheathing and fastener spacing per NSCP 2015.');
-	}
-
-	// Roof type
-	if (building.roofType === 'flat' && typhoonScore >= 50) {
-		recs.push('⚠️ Flat roofs are prone to uplift. Consider gable or hip roof.');
-	}
-
-	// Building height
-	if (building.height > 30) {
-		recs.push('⚠️ Tall building: Consider dynamic wind analysis and vortex shedding.');
-	}
-
-	// Configuration
-	if (building.configuration === 'irregular') {
 		recs.push(
-			'⚠️ Irregular configuration may cause stress concentrations. Simplify plan if possible.'
+			'⚠️ FAULT PROXIMITY: Located within 10 km of an active fault. Verify foundation ground-motion response.'
 		);
 	}
 
-	// Default
-	if (recs.length === 0) {
-		recs.push('✅ Building appears to have low risk. Maintain regular inspections.');
+	if (site.soilType === 'soft') {
+		recs.push(
+			'⚠️ GEOTECHNICAL: Soft soil condition can significantly amplify ground motions. Conduct site-specific borehole and SPT investigation.'
+		);
 	}
 
+	// ---------- 3. Typhoon & Wind Hazard Recommendations ----------
+	if (typhoonScore > 75) {
+		recs.push(
+			'🔴 CRITICAL WIND: Very high wind vulnerability. Reinforce roof trusses, purlins, and wall cladding connections.'
+		);
+		recs.push(
+			'🔴 Use impact-resistant glazing and install storm shutters against wind-borne debris.'
+		);
+	} else if (typhoonScore > 50) {
+		recs.push(
+			'🟠 HIGH WIND: Check roof sheathing fastener spacing and uplift anchorage per NSCP 2015 Table 207B.'
+		);
+	} else if (typhoonScore > 25) {
+		recs.push(
+			'🟡 MODERATE WIND: Ensure structural roof clips / hurricane ties are properly installed on all rafter-to-wall joints.'
+		);
+	}
+
+	// ---------- 4. Building Typology & Material Specifics ----------
+	if (building.material === 'timber') {
+		recs.push(
+			'ℹ️ TIMBER STRUCTURE: Use galvanized steel hurricane straps, preservative-treated framing, and shear wall anchor bolts.'
+		);
+	} else if (building.material === 'masonry') {
+		recs.push(
+			'ℹ️ MASONRY STRUCTURE: Provide reinforced concrete tie beams and stiffener columns at all corner intersections.'
+		);
+	}
+
+	if (building.roofType === 'flat') {
+		recs.push(
+			'⚠️ FLAT ROOF: Prone to severe wind suction on eaves and ponding water. Ensure reinforced parapets and positive slope drainage.'
+		);
+	} else if (building.roofType === 'monoslope') {
+		recs.push(
+			'⚠️ MONOSLOPE ROOF: Asymmetric wind uplift on high eave. Double rafter tie anchors on windward edge.'
+		);
+	}
+
+	if (building.configuration === 'irregular') {
+		recs.push(
+			'⚠️ PLAN IRREGULARITY: Asymmetric shape may cause torsional eccentricity during seismic shaking and wind vortices.'
+		);
+	}
+
+	if (building.height > 30) {
+		recs.push(
+			'⚠️ TALL STRUCTURE: Building height exceeds 30 m. Evaluate cross-wind vortex shedding and story drift limitations.'
+		);
+	}
+
+	// ---------- 5. Context-Aware Baseline Fallback ----------
+	if (recs.length === 0) {
+		if (dangerLevel === 'CRITICAL' || dangerLevel === 'HIGH') {
+			recs.push(
+				'⚠️ Elevated combined multi-hazard risk. Full structural engineering review recommended.'
+			);
+		} else if (dangerLevel === 'MODERATE') {
+			recs.push(
+				'🟡 Moderate multi-hazard exposure: Review the individual hazard scores with a qualified engineer.'
+			);
+		} else {
+			recs.push(
+				'No additional scenario-specific rule was triggered. This does not establish building safety.'
+			);
+		}
+	}
+
+	// Standard disclaimer
 	recs.push(
-		'ℹ️ Fault data from HazardHunterPH. Wind data from PAGASA. These are preliminary recommendations only. Consult a licensed structural engineer.'
+		'ℹ️ Fault data referenced from PHIVOLCS / HazardHunterPH; wind parameters per NSCP 2015. Preliminary decision-support evaluation only.'
 	);
 
 	return recs;

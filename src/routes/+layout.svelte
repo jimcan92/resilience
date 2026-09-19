@@ -1,5 +1,5 @@
 <script lang="ts">
-	import favicon from '$lib/assets/favicon.svg';
+	import favicon from '$lib/assets/favicon.png';
 	import Header from '$lib/components/Header.svelte';
 	import { appStatus } from '$lib/states/status.svelte';
 	import { onMount } from 'svelte';
@@ -54,13 +54,13 @@
 	</main>
 
 	<footer
-		class="footer footer-center border-t border-base-300 bg-base-100 p-4 text-base-content/60"
+		class="footer footer-center grid-cols-1 border-t border-base-300 bg-base-100 p-4 text-base-content/60"
 	>
-		<div class="text-center">
+		<div class="flex flex-col gap-0 text-center">
 			<p class="text-xs">
 				Preliminary assessment tool only. Not a substitute for professional structural engineering.
 			</p>
-			<p class="mt-1 text-xs">
+			<p class="text-xs">
 				Fault data from
 				<a
 					href="https://hazardhunter.georisk.gov.ph/map"
@@ -72,13 +72,26 @@
 				</a>
 				• Wind data from PAGASA
 			</p>
+			<p class="mt-2 text-xs">
+				&copy;2026 |
+				<a href="https://jimcan.net" target="_blank" rel="noopener" class="link link-primary"
+					>jiMcaN</a
+				>
+			</p>
 		</div>
 	</footer>
 </div>
 
 {#if appStatus.alert}
 	<div class="toast toast-end toast-bottom z-50">
-		<div class="alert alert-{appStatus.alert.type} shadow-lg">
+		<div
+			role="status"
+			class="alert shadow-lg"
+			class:alert-error={appStatus.alert.type === 'error'}
+			class:alert-success={appStatus.alert.type === 'success'}
+			class:alert-info={appStatus.alert.type === 'info'}
+			class:alert-warning={appStatus.alert.type === 'warning'}
+		>
 			<span class="text-sm">{appStatus.alert.message}</span>
 			<button
 				type="button"

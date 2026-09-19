@@ -22,7 +22,7 @@
 			</div>
 		</a>
 
-		<nav class="ml-auto flex items-center gap-1 md:ml-0">
+		<nav class="ml-auto flex items-center gap-2 md:ml-0">
 			<a
 				href="/"
 				class="btn btn-circle btn-primary md:btn-block {currentPath !== '/' && 'btn-outline'}"

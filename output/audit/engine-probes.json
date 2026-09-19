@@ -1,0 +1,85 @@
+[
+  {
+    "case": "distance",
+    "distance": 0,
+    "pga": 0,
+    "pressure": 1306.645447530864,
+    "earthquakeScore": 0,
+    "typhoonScore": 22,
+    "risk": 11,
+    "resilienceIndex": 0.89,
+    "dangerLevel": "LOW"
+  },
+  {
+    "case": "distance",
+    "distance": 0.001,
+    "pga": 0.38711961512417986,
+    "pressure": 1306.645447530864,
+    "earthquakeScore": 48,
+    "typhoonScore": 22,
+    "risk": 35,
+    "resilienceIndex": 0.65,
+    "dangerLevel": "MODERATE"
+  },
+  {
+    "case": "distance",
+    "distance": 10,
+    "pga": 0.19581690361791224,
+    "pressure": 1306.645447530864,
+    "earthquakeScore": 24,
+    "typhoonScore": 22,
+    "risk": 23,
+    "resilienceIndex": 0.77,
+    "dangerLevel": "LOW"
+  },
+  {
+    "case": "single extreme hazard",
+    "risk": 50,
+    "resilienceIndex": 0.5,
+    "dangerLevel": "MODERATE"
+  },
+  {
+    "case": "moderate result versus low-risk recommendation",
+    "risk": 30,
+    "resilienceIndex": 0.7,
+    "dangerLevel": "MODERATE",
+    "recommendations": [
+      "✅ Building appears to have low risk. Maintain regular inspections.",
+      "ℹ️ Fault data from HazardHunterPH. Wind data from PAGASA. These are preliminary recommendations only. Consult a licensed structural engineer."
+    ]
+  },
+  {
+    "case": "internal pressure sign comparison, same assumed q",
+    "positiveInternal": 1306.645447530864,
+    "negativeInternal": 2247.4301697530864
+  },
+  {
+    "case": "height",
+    "height": 150,
+    "pressure": 2223.810040509259
+  },
+  {
+    "case": "height",
+    "height": 200,
+    "pressure": 2223.810040509259
+  },
+  {
+    "case": "height",
+    "height": 500,
+    "pressure": 2223.810040509259
+  },
+  {
+    "case": "wind speed scaling",
+    "ratio": 4
+  },
+  {
+    "case": "distance sanity",
+    "samePoint": 0,
+    "degreeAtEquator": 111.19492664455873
+  },
+  {
+    "case": "corrupt storage",
+    "throws": true,
+    "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+  }
+]
