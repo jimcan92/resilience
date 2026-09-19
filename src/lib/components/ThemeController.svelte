@@ -1,26 +1,27 @@
 <script lang="ts">
+	import { Moon, Sun } from '@lucide/svelte';
 	import themes from 'daisyui/functions/themeOrder';
+	import theme from 'daisyui/theme/object';
 
-	function changeTheme(themeName: string) {
-		// I-save sa localStorage
-		localStorage.setItem('theme', themeName);
-		// I-apply dayon sa HTML element
-		document.documentElement.setAttribute('data-theme', themeName);
-	}
+	let selectedTheme = $state<string>();
+
+	$effect(() => {
+		if (selectedTheme) {
+			// I-save sa localStorage
+			localStorage.setItem('theme', selectedTheme);
+			// I-apply dayon sa HTML element
+			document.documentElement.setAttribute('data-theme', selectedTheme);
+		}
+	});
 </script>
 
 <div class="dropdown dropdown-end">
-	<div tabindex="0" role="button" class="btn m-1">
-		Theme
-		<svg
-			width="12px"
-			height="12px"
-			class="inline-block h-2 w-2 fill-current opacity-60"
-			xmlns="http://www.w3.org/2000/svg"
-			viewBox="0 0 2048 2048"
-		>
-			<path d="M1799 349l242 241-1017 1017L7 590l242-241 775 775 775-775z"></path>
-		</svg>
+	<div tabindex="0" role="button" class="btn btn-circle btn-outline btn-primary">
+		{#if selectedTheme && theme[selectedTheme]['color-scheme'] == 'dark'}
+			<Moon class="h-5 w-5" />
+		{:else}
+			<Sun class="h-5 w-5" />
+		{/if}
 	</div>
 	<ul
 		tabindex="-1"
@@ -30,7 +31,9 @@
 			<button
 				data-theme={theme}
 				class="w-full rounded hover:bg-base-200"
-				onclick={() => changeTheme(theme)}
+				onclick={() => {
+					selectedTheme = theme;
+				}}
 			>
 				<label class="flex cursor-pointer items-center gap-2 px-3 py-1">
 					<input
@@ -45,7 +48,7 @@
 					<span class="w-2 self-stretch rounded bg-secondary"></span>
 					<span class="w-2 self-stretch rounded bg-accent"></span>
 					<span class="w-2 self-stretch rounded bg-neutral"></span>
-					<span class="rounded-box border border-primary px-3 py-1">{theme.toUpperCase()}</span>
+					<span class="rounded-box border border-primary px-3">{theme.toUpperCase()}</span>
 				</label>
 			</button>
 		{/each}

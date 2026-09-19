@@ -199,8 +199,10 @@
 		</svg>
 
 		<span>
-			<strong>How to get fault distance:</strong> Click "Open HazardHunterPH" → select "Seismic Hazard"
-			→ "Ground Shaking" → copy the distance to nearest fault.
+			<strong>How to get fault distance:</strong> Click on the latitude/longitude value to copy. Open
+			HazardHunterPH then in Location Tools open Long-Lat Coordinate. Input copied longitude and latitude
+			then click search. When the location is found, the assessment panel will show in the right, find
+			the 'Nearest Active Fault' and copy the value in km, then paste below.
 		</span>
 	</div>
 </div>

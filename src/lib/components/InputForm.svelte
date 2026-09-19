@@ -186,27 +186,46 @@
 
 					<MapPicker bind:latitude={form.site.latitude} bind:longitude={form.site.longitude} />
 
-					<div class="flex flex-col gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
+					<div class="flex flex-col gap-3 rounded-box border border-primary/30 bg-primary/5 p-4">
 						<h3 class="text-sm font-semibold text-base-content">
 							Distance to nearest active fault
 						</h3>
-						<p class="text-xs text-base-content/60">
+						<!-- <p class="text-xs text-base-content/60">
 							Open HazardHunterPH then in Location Tools open Long-Lat Coordinate. Input copied
 							longitude and latitude then click search. When the location is found, the assessment
 							panel will show in the right, find the 'Nearest Active Fault' and copy the value in
 							km, then paste below.
-						</p>
+						</p> -->
 
-						<div class="flex flex-col gap-3 lg:flex-row">
+						<div class="flex flex-col gap-3 md:flex-row">
 							<button
 								type="button"
 								onclick={openHazardHunter}
-								class="btn grow btn-outline btn-info"
+								class="group btn grow btn-outline btn-info"
 							>
-								Open HazardHunterPH
+								HazardHunterPH
+								<svg
+									class="h-4 w-4 transform text-info transition-transform duration-200 group-hover:-translate-y-1 group-hover:text-info-content"
+									viewBox="0 0 24 24"
+									fill="none"
+									xmlns="http://www.w3.org/2000/svg"
+									><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g
+										id="SVGRepo_tracerCarrier"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									></g><g id="SVGRepo_iconCarrier">
+										<path
+											d="M7 17L17 7M17 7H8M17 7V16"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										></path>
+									</g></svg
+								>
 							</button>
 							<label
-								class="input-bordered input flex w-full max-w-full grow items-center gap-2 lg:w-max {errors.faultDistance
+								class="input-bordered input flex w-full max-w-full grow items-center gap-2 md:w-max {errors.faultDistance
 									? 'input-error'
 									: 'input-primary'}"
 							>
@@ -251,7 +270,7 @@
 							<label class="form-control">
 								<span class="label-text mb-1">Building height</span>
 								<label
-									class="input-bordered input flex items-center gap-2 {errors.height
+									class="input-bordered input flex w-full items-center gap-2 {errors.height
 										? 'input-error'
 										: ''}"
 								>
@@ -264,7 +283,7 @@
 							<label class="form-control">
 								<span class="label-text mb-1">Number of floors</span>
 								<label
-									class="input-bordered input flex items-center gap-2 {errors.floors
+									class="input-bordered input flex w-full items-center gap-2 {errors.floors
 										? 'input-error'
 										: ''}"
 								>
@@ -277,7 +296,7 @@
 							<label class="form-control">
 								<span class="label-text mb-1">Length</span>
 								<label
-									class="input-bordered input flex items-center gap-2 {errors.length
+									class="input-bordered input flex w-full items-center gap-2 {errors.length
 										? 'input-error'
 										: ''}"
 								>
@@ -290,7 +309,7 @@
 							<label class="form-control">
 								<span class="label-text mb-1">Width</span>
 								<label
-									class="input-bordered input flex items-center gap-2 {errors.width
+									class="input-bordered input flex w-full items-center gap-2 {errors.width
 										? 'input-error'
 										: ''}"
 								>
@@ -351,7 +370,7 @@
 						<label class="form-control">
 							<span class="label-text mb-1">Design wind speed</span>
 							<label
-								class="input-bordered input flex items-center gap-2 {errors.windSpeed
+								class="input-bordered input flex w-full items-center gap-2 {errors.windSpeed
 									? 'input-error'
 									: ''}"
 							>
@@ -368,7 +387,7 @@
 						<label class="form-control">
 							<span class="label-text mb-1">Earthquake magnitude</span>
 							<label
-								class="input-bordered input flex items-center gap-2 {errors.magnitude
+								class="input-bordered input flex w-full items-center gap-2 {errors.magnitude
 									? 'input-error'
 									: ''}"
 							>
