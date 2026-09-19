@@ -73,10 +73,14 @@
 				• Wind data from PAGASA
 			</p>
 			<p class="mt-2 text-xs">
-				&copy;2026 |
-				<a href="https://jimcan.net" target="_blank" rel="noopener" class="link link-primary"
-					>jiMcaN</a
-				>
+				&copy; 2026 | Developed by
+				<a href="https://jimcan.net" target="_blank" rel="noopener" class="link link-primary">
+					jiMcaN
+				</a>
+				| Hosted in
+				<a href="https://vercel.com" target="_blank" rel="noopener" class="link link-primary">
+					Vercel
+				</a>
 			</p>
 		</div>
 	</footer>

@@ -40,7 +40,7 @@
 </script>
 
 <div class="space-y-6 py-6">
-	{#if result.details.resolvedParameters}<ParameterSummary
+	<!-- {#if result.details.resolvedParameters}<ParameterSummary
 			parameters={result.details.resolvedParameters}
 		/>{/if}
 	<div class="space-y-2 rounded-lg border border-warning/40 bg-warning/10 p-4 text-sm">
@@ -59,7 +59,7 @@
 			not affect these scores. Fault distance is entered manually.
 		</p>
 		<p class="text-xs">Model: {result.modelVersion}</p>
-	</div>
+	</div> -->
 	<div class="card border-2 {colors.border} {colors.softBg}">
 		<div class="card-body text-center">
 			<h2 class="font-display text-3xl font-semibold {colors.text}">
@@ -140,6 +140,41 @@
 			</div>
 		</div>
 	</div>
+	<!-- How to Interpret & Calculation Parameters (Expandable Sections) -->
+	<div class="space-y-3">
+		{#if result.details.resolvedParameters}
+			<details class="collapse-arrow collapse border border-base-300 bg-base-100 shadow-sm">
+				<summary class="font-display collapse-title text-base font-semibold"
+					>Calculation parameters</summary
+				>
+				<div class="collapse-content">
+					<ParameterSummary parameters={result.details.resolvedParameters} />
+				</div>
+			</details>
+		{/if}
+
+		<details class="collapse-arrow collapse border border-warning/20 bg-warning/5 shadow-sm">
+			<summary class="font-display collapse-title text-base font-semibold">How to interpret</summary
+			>
+			<div class="collapse-content space-y-2 pt-2 text-sm">
+				<p>
+					Research prototype: higher BRS means lower combined model scores; it is not a probability
+					of building safety.
+				</p>
+				<p>
+					Scoring bounds, weights and soil factors require research justification. Default wind
+					capacity and dispersion are illustrative; custom curves are user supplied. Velocity
+					pressure is not a complete wall or roof design pressure.
+				</p>
+				<p>
+					Wind exposure: {result.details.parameters?.hazard.exposure ?? 'C'}. Material, roof and
+					configuration affect default wind fragility only. Floors, length and width are recorded
+					but do not affect these scores. Fault distance is entered manually.
+				</p>
+				<p class="text-xs">Model: {result.modelVersion}</p>
+			</div>
+		</details>
+	</div>
 
 	<div class="card border border-base-300 bg-base-100 shadow-sm">
 		<div class="card-body">
@@ -157,7 +192,7 @@
 	</div>
 
 	<div class="flex flex-col gap-3 sm:flex-row">
-		<button onclick={onReset} class="btn flex-1 btn-outline"> New assessment </button>
-		<a href="/history" class="btn flex-1 btn-ghost">View history</a>
+		<button onclick={onReset} class="btn grow btn-primary">New assessment</button>
+		<a href="/history" class="btn grow btn-outline btn-primary">View history</a>
 	</div>
 </div>
