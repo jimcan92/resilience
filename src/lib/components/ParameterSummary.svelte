@@ -27,6 +27,6 @@
 		<dt>Earthquake / typhoon weights</dt>
 		<dd>{p.earthquakeWeight}% / {p.typhoonWeight}%</dd>
 	</dl>
-	<p class="break-words"><strong>Damage state:</strong> {p.damageState}</p>
-	<p class="break-words"><strong>Source:</strong> {p.reference}</p>
+	<p class="wrap-break-word"><strong>Damage state:</strong> {p.damageState}</p>
+	<p class="wrap-break-word"><strong>Source:</strong> {p.reference}</p>
 </div>

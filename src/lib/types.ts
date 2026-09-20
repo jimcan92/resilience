@@ -70,7 +70,7 @@ export interface AssessmentResult {
 	buildingResilienceScore: number; // BRS (0-100)
 	resilienceIndex: number; // 0-1 (for UI radial progress display)
 	dangerLevel: DangerLevel;
-	recommendations: string[];
+	// recommendations: string[];
 	details: AssessmentDetails;
 }
 

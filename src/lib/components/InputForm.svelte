@@ -1,14 +1,14 @@
 <script lang="ts">
 	import AdvancedParameters from '$lib/components/AdvancedParameters.svelte';
+	import MapPicker from '$lib/components/MapPicker.svelte';
 	import ParameterSummary from '$lib/components/ParameterSummary.svelte';
+	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
+	import StepIndicator from '$lib/components/StepIndicator.svelte';
 	import {
 		defaultModelParameters,
 		parameterErrors,
 		resolveModelParameters
 	} from '$lib/engine/parameters';
-	import MapPicker from '$lib/components/MapPicker.svelte';
-	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
-	import StepIndicator from '$lib/components/StepIndicator.svelte';
 	import type { AssessmentInput } from '$lib/types';
 
 	let { onSubmit }: { onSubmit: (input: AssessmentInput) => void } = $props();
@@ -226,46 +226,46 @@
 
 					<MapPicker bind:latitude={form.site.latitude} bind:longitude={form.site.longitude} />
 
-					<div class="flex flex-col gap-3 rounded-box border border-primary/30 bg-primary/5 p-4">
-						<h3 class="text-sm font-semibold text-base-content">
-							Distance to nearest active fault
-						</h3>
-						<!-- <p class="text-xs text-base-content/60">
+					<!-- <fieldset>
+						<span class="label"> Distance to nearest active fault </span> -->
+					<!-- <p class="text-xs text-base-content/60">
 							Open HazardHunterPH then in Location Tools open Long-Lat Coordinate. Input copied
 							longitude and latitude then click search. When the location is found, the assessment
 							panel will show in the right, find the 'Nearest Active Fault' and copy the value in
 							km, then paste below.
 						</p> -->
 
-						<div class="flex flex-col gap-3 md:flex-row">
-							<button
-								type="button"
-								onclick={openHazardHunter}
-								class="group btn grow btn-outline btn-info"
-							>
-								HazardHunterPH
-								<svg
-									class="h-4 w-4 transform text-info transition-transform duration-200 group-hover:-translate-y-1 group-hover:text-info-content"
-									viewBox="0 0 24 24"
-									fill="none"
-									xmlns="http://www.w3.org/2000/svg"
-									><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g
-										id="SVGRepo_tracerCarrier"
+					<div class="flex flex-col gap-2 md:flex-row md:items-end">
+						<button
+							type="button"
+							onclick={openHazardHunter}
+							class="group btn btn-outline btn-info md:flex-1"
+						>
+							HazardHunterPH
+							<svg
+								class="h-4 w-4 transform text-info transition-transform duration-200 group-hover:-translate-y-1 group-hover:text-info-content"
+								viewBox="0 0 24 24"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+								><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g
+									id="SVGRepo_tracerCarrier"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								></g><g id="SVGRepo_iconCarrier">
+									<path
+										d="M7 17L17 7M17 7H8M17 7V16"
+										stroke="currentColor"
+										stroke-width="2"
 										stroke-linecap="round"
 										stroke-linejoin="round"
-									></g><g id="SVGRepo_iconCarrier">
-										<path
-											d="M7 17L17 7M17 7H8M17 7V16"
-											stroke="currentColor"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-										></path>
-									</g></svg
-								>
-							</button>
+									></path>
+								</g></svg
+							>
+						</button>
+						<fieldset class="fieldset flex-1">
+							<span class="label">Distance to nearest active fault</span>
 							<label
-								class="input-bordered input flex w-full max-w-full grow items-center gap-2 md:w-max {errors.faultDistance
+								class="input-bordered input flex w-full items-center gap-2 {errors.faultDistance
 									? 'input-error'
 									: 'input-primary'}"
 							>
@@ -280,20 +280,17 @@
 								/>
 								<span class="text-xs text-base-content/50">km</span>
 							</label>
-						</div>
-						{#if errors.faultDistance}
-							<span class="mt-1 block text-xs text-error">{errors.faultDistance}</span>
-						{/if}
+						</fieldset>
 					</div>
+					{#if errors.faultDistance}
+						<span class="mt-1 block text-xs text-error">{errors.faultDistance}</span>
+					{/if}
+					<!-- </fieldset> -->
 
-					<div>
-						<span class="mb-2 block text-sm font-medium text-base-content/80">Soil type</span>
-						<SegmentedControl
-							options={soilTypeOptions}
-							bind:value={form.site.soilType}
-							columnsClass="grid-cols-3"
-						/>
-					</div>
+					<fieldset class="fieldset w-full">
+						<span class="label">Soil type</span>
+						<SegmentedControl options={soilTypeOptions} bind:value={form.site.soilType} />
+					</fieldset>
 				</div>
 			</div>
 			<AdvancedParameters input={form} bind:parameters section="site" {errors} />
@@ -307,14 +304,13 @@
 							not affect the current equations.
 						</p>
 					</div>
-
 					<div>
 						<h3 class="mb-3 border-b border-base-300 pb-2 text-sm font-medium text-base-content/70">
 							Dimensions
 						</h3>
 						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-							<label class="form-control">
-								<span class="label-text mb-1">Building height</span>
+							<fieldset class="fieldset">
+								<span class="label">Building height</span>
 								<label
 									class="input-bordered input flex w-full items-center gap-2 {errors.height
 										? 'input-error'
@@ -324,10 +320,10 @@
 									<span class="text-xs text-base-content/50">m</span>
 								</label>
 								{#if errors.height}<span class="mt-1 text-xs text-error">{errors.height}</span>{/if}
-							</label>
+							</fieldset>
 
-							<label class="form-control">
-								<span class="label-text mb-1">Number of floors</span>
+							<fieldset class="fieldset">
+								<span class="label">Number of floors</span>
 								<label
 									class="input-bordered input flex w-full items-center gap-2 {errors.floors
 										? 'input-error'
@@ -337,10 +333,10 @@
 									<span class="text-xs text-base-content/50">floors</span>
 								</label>
 								{#if errors.floors}<span class="mt-1 text-xs text-error">{errors.floors}</span>{/if}
-							</label>
+							</fieldset>
 
-							<label class="form-control">
-								<span class="label-text mb-1">Length</span>
+							<fieldset class="fieldset">
+								<span class="label">Length</span>
 								<label
 									class="input-bordered input flex w-full items-center gap-2 {errors.length
 										? 'input-error'
@@ -350,10 +346,10 @@
 									<span class="text-xs text-base-content/50">m</span>
 								</label>
 								{#if errors.length}<span class="mt-1 text-xs text-error">{errors.length}</span>{/if}
-							</label>
+							</fieldset>
 
-							<label class="form-control">
-								<span class="label-text mb-1">Width</span>
+							<fieldset class="fieldset">
+								<span class="label">Width</span>
 								<label
 									class="input-bordered input flex w-full items-center gap-2 {errors.width
 										? 'input-error'
@@ -363,7 +359,7 @@
 									<span class="text-xs text-base-content/50">m</span>
 								</label>
 								{#if errors.width}<span class="mt-1 text-xs text-error">{errors.width}</span>{/if}
-							</label>
+							</fieldset>
 						</div>
 					</div>
 
@@ -371,39 +367,43 @@
 						<h3 class="mb-3 border-b border-base-300 pb-2 text-sm font-medium text-base-content/70">
 							Construction
 						</h3>
-						<div class="space-y-4">
-							<div>
-								<span class="mb-2 block text-sm text-base-content/80">Material</span>
-								<select
-									aria-label="Material"
-									class="select-bordered select w-full"
-									bind:value={form.building.material}
-									>{#each materialOptions as option}<option value={option.value}
-											>{option.label}</option
-										>{/each}</select
-								>
+						<div class="flex flex-col gap-3">
+							<div class="flex flex-col gap-2 md:flex-row">
+								<fieldset class="fieldset flex-1">
+									<label for="material" class="label">Material</label>
+									<select
+										id="material"
+										aria-label="Material"
+										class="select-bordered select w-full"
+										bind:value={form.building.material}
+									>
+										{#each materialOptions as option}
+											<option value={option.value}>{option.label}</option>
+										{/each}
+									</select>
+								</fieldset>
+								<fieldset class="fieldset flex-1">
+									<label for="roof-type" class="label">Roof type</label>
+									<select
+										id="roof-type"
+										aria-label="Roof type"
+										class="select-bordered select w-full"
+										bind:value={form.building.roofType}
+									>
+										{#each roofTypeOptions as option}
+											<option value={option.value}>{option.label}</option>
+										{/each}
+									</select>
+								</fieldset>
 							</div>
 
-							<div>
-								<span class="mb-2 block text-sm text-base-content/80">Roof type</span>
-								<select
-									aria-label="Roof type"
-									class="select-bordered select w-full"
-									bind:value={form.building.roofType}
-									>{#each roofTypeOptions as option}<option value={option.value}
-											>{option.label}</option
-										>{/each}</select
-								>
-							</div>
-
-							<div>
-								<span class="mb-2 block text-sm text-base-content/80">Configuration</span>
+							<fieldset class="fieldset">
+								<span class="label">Configuration</span>
 								<SegmentedControl
 									options={configurationOptions}
 									bind:value={form.building.configuration}
-									columnsClass="grid-cols-2"
 								/>
-							</div>
+							</fieldset>
 						</div>
 					</div>
 				</div>
@@ -418,16 +418,23 @@
 						</p>
 					</div>
 
-					<fieldset>
-						<legend class="mb-2 text-sm font-medium">Exposure category</legend><SegmentedControl
-							options={exposureOptions}
+					<fieldset class="fieldset">
+						<label for="exposure" class="label">Exposure category</label>
+						<!-- <SegmentedControl options={exposureOptions} bind:value={form.hazard.exposure} /> -->
+						<select
+							id="material"
+							aria-label="Material"
+							class="select-bordered select w-full"
 							bind:value={form.hazard.exposure}
-							columnsClass="grid-cols-1 sm:grid-cols-3"
-						/>
+						>
+							{#each exposureOptions as option}
+								<option value={option.value}>{option.label}</option>
+							{/each}
+						</select>
 					</fieldset>
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						<label class="form-control">
-							<span class="label-text mb-1">Design wind speed</span>
+						<fieldset class="fieldset">
+							<span class="label">Design wind speed</span>
 							<label
 								class="input-bordered input flex w-full items-center gap-2 {errors.windSpeed
 									? 'input-error'
@@ -436,15 +443,14 @@
 								<input type="number" step="any" bind:value={form.hazard.windSpeed} class="grow" />
 								<span class="text-xs text-base-content/50">kph</span>
 							</label>
-							<span class="label-text-alt mt-1 block text-base-content/60"
+							<span class="label-text-alt block text-base-content/60"
 								>From the applicable NSCP 2015 wind-speed map</span
 							>
-							{#if errors.windSpeed}<span class="mt-1 text-xs text-error">{errors.windSpeed}</span
-								>{/if}
-						</label>
+							{#if errors.windSpeed}<span class="text-xs text-error">{errors.windSpeed}</span>{/if}
+						</fieldset>
 
-						<label class="form-control">
-							<span class="label-text mb-1">Earthquake magnitude</span>
+						<fieldset class="fieldset">
+							<span class="label">Earthquake magnitude</span>
 							<label
 								class="input-bordered input flex w-full items-center gap-2 {errors.magnitude
 									? 'input-error'
@@ -453,12 +459,11 @@
 								<input type="number" step="0.1" bind:value={form.hazard.magnitude} class="grow" />
 								<span class="text-xs text-base-content/50">Mw</span>
 							</label>
-							<span class="label-text-alt mt-1 block text-base-content/60"
+							<span class="label-text-alt block text-base-content/60"
 								>Scenario magnitude (e.g., 7.0)</span
 							>
-							{#if errors.magnitude}<span class="mt-1 text-xs text-error">{errors.magnitude}</span
-								>{/if}
-						</label>
+							{#if errors.magnitude}<span class="text-xs text-error">{errors.magnitude}</span>{/if}
+						</fieldset>
 					</div>
 				</div>
 			</div>
@@ -540,7 +545,7 @@
 			<button
 				type="button"
 				onclick={goBack}
-				class="btn btn-outline {currentStep === 0 ? 'invisible' : ''}"
+				class="btn btn-outline btn-primary {currentStep === 0 ? 'invisible' : ''}"
 			>
 				Back
 			</button>

@@ -14,8 +14,8 @@
 	} = $props();
 </script>
 
-<div class="space-y-1">
-	<label for={'parameter-' + name} class="block text-sm font-medium">{label}</label>
+<fieldset class="fieldset">
+	<label for={'parameter-' + name} class="label">{label}</label>
 	<input
 		id={'parameter-' + name}
 		type="number"
@@ -27,4 +27,4 @@
 	/>
 	<p id={'parameter-hint-' + name} class="text-xs text-base-content/70">{hint}</p>
 	{#if error}<p role="alert" class="text-xs text-error">{error}</p>{/if}
-</div>
+</fieldset>

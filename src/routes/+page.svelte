@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { assess } from '$lib/engine/assessment';
 	import InputForm from '$lib/components/InputForm.svelte';
 	import ResultDashboard from '$lib/components/ResultDashboard.svelte';
 	import Toast from '$lib/components/Toast.svelte';
+	import { assess } from '$lib/engine/assessment';
+	import { recState } from '$lib/states/recommendations.svelte';
 	import { saveAssessment } from '$lib/storage/localStorage';
 	import type { AssessmentInput, AssessmentResult } from '$lib/types';
 
@@ -14,6 +15,8 @@
 		error = '';
 		try {
 			result = assess($state.snapshot(input));
+
+			if (result) recState.fetchRecommendations(input, result);
 
 			showSavedToast = saveAssessment($state.snapshot(input), result);
 			if (!showSavedToast) error = 'Calculated, but could not save assessment in this browser.';

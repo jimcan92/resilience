@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { AssessmentInput, ModelParameters } from '$lib/types';
-	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import ParameterNumber from '$lib/components/ParameterNumber.svelte';
+	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import soilFactors from '$lib/data/soil-factors.json';
 	import { getBuildingWindCapacity, getKz } from '$lib/engine/wind';
+	import type { AssessmentInput, ModelParameters } from '$lib/types';
 	let {
 		input,
 		parameters = $bindable(),
@@ -53,8 +53,8 @@
 	>
 	<div class="mt-4 space-y-5">
 		{#if section === 'site'}
-			<fieldset class="space-y-2">
-				<legend class="mb-2 text-sm">Soil multiplier mode</legend>
+			<fieldset class="fieldset">
+				<legend class="label">Soil multiplier mode</legend>
 				<SegmentedControl options={modes} bind:value={parameters.soilMode} />
 			</fieldset>
 			{#if parameters.soilMode === 'custom'}
@@ -91,8 +91,8 @@
 			<p class="text-sm">
 				Computed exposure coefficient Kz: <strong>{kz}</strong> (height and exposure; read-only).
 			</p>
-			<fieldset class="space-y-2">
-				<legend class="mb-2 text-sm">Fragility parameter mode</legend>
+			<fieldset class="fieldset">
+				<span class="label">Fragility parameter mode</span>
 				<SegmentedControl options={modes} bind:value={parameters.fragilityMode} />
 			</fieldset>
 			{#if parameters.fragilityMode === 'custom'}
@@ -116,24 +116,26 @@
 						error={errors.beta}
 					/>
 				</div>
-				<label class="block space-y-1"
-					><span class="text-sm font-medium">Damage-state description</span>
+				<fieldset class="fieldset">
+					<label for="damage-state" class="label">Damage-state description</label>
 					<input
+						id="damage-state"
 						class="input-bordered input w-full"
 						bind:value={parameters.damageState}
 						aria-invalid={!!errors.damageState}
 					/>
-				</label>
+				</fieldset>
 				{#if errors.damageState}<p role="alert" class="text-xs text-error">
 						{errors.damageState}
 					</p>{/if}
-				<label class="block space-y-1"
-					><span class="text-sm font-medium">Curve source / reference</span>
+				<fieldset class="fieldset">
+					<label for="curve-source" class="label">Curve source / reference</label>
 					<textarea
+						id="curve-source"
 						class="textarea-bordered textarea w-full"
 						bind:value={parameters.reference}
 						aria-invalid={!!errors.reference}></textarea>
-				</label>
+				</fieldset>
 				{#if errors.reference}<p role="alert" class="text-xs text-error">{errors.reference}</p>{/if}
 				<p class="text-xs text-base-content/70">
 					References are recorded as supplied, not independently validated.

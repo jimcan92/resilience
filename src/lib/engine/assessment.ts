@@ -1,6 +1,5 @@
 import { resolveModelParameters } from '$lib/engine/parameters';
 import { estimatePGA, pgaToScore } from '$lib/engine/pga';
-import { generateRecommendations } from '$lib/engine/recommendations';
 import { calculateRisk } from '$lib/engine/risk';
 import { calculateWindPressure, windToFragilityScore } from '$lib/engine/wind';
 import type { AssessmentInput, AssessmentResult } from '$lib/types';
@@ -37,12 +36,12 @@ export function assess(input: AssessmentInput): AssessmentResult {
 		}
 	);
 
-	const recommendations = generateRecommendations(
-		input,
-		earthquakeScore,
-		typhoonScore,
-		dangerLevel
-	);
+	// const recommendations = generateRecommendations(
+	// 	input,
+	// 	earthquakeScore,
+	// 	typhoonScore,
+	// 	dangerLevel
+	// );
 
 	return {
 		modelVersion: 'paper-2026-09-parameters-2',
@@ -51,7 +50,7 @@ export function assess(input: AssessmentInput): AssessmentResult {
 		typhoonScore,
 		resilienceIndex,
 		dangerLevel,
-		recommendations,
+		// recommendations,
 		details: {
 			resolvedParameters,
 			pga,

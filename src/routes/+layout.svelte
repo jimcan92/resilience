@@ -1,6 +1,7 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.png';
 	import Header from '$lib/components/Header.svelte';
+	import { recState } from '$lib/states/recommendations.svelte';
 	import { appStatus } from '$lib/states/status.svelte';
 	import { onMount } from 'svelte';
 	import './layout.css';
@@ -39,6 +40,8 @@
 				}
 			});
 		}
+
+		recState.load();
 	});
 
 	let { children } = $props();
