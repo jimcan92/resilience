@@ -25,6 +25,7 @@ A web-based research prototype for exploring earthquake and typhoon-wind scenari
 - [Project structure](#project-structure)
 - [Troubleshooting](#troubleshooting)
 - [References and credits](#references-and-credits)
+- [License](#license)
 
 ## Project context
 
@@ -419,4 +420,12 @@ The active engine and imported tables are the source of truth. A supporting data
 - **Calculation references named in the code:** Fukushima and Tanaka (1990) for the implemented ground-motion equation and NSCP 2015 for the stated wind calculation basis. Verify primary references, applicability, and governing requirements independently.
 - **Supporting services:** Google Gemini for optional AI text, Google map tiles and fonts, Leaflet for the map interface, and Vercel for hosting.
 
-No project license is declared in the current repository. Do not assume that public access to the application grants reuse rights to its code, research documents, third-party standards, or map imagery. Third-party dependencies and services retain their own licenses and terms.
+## License
+
+The original application source code and project documentation are licensed under the [MIT License](LICENSE), copyright © 2026 jiMcaN.
+
+You may use, copy, modify, and redistribute the software, including for commercial purposes, provided that the copyright and permission notices are retained in copies or substantial portions. MIT does not require you to publish the source code of your modifications. See the [Open Source Initiative's MIT License text](https://opensource.org/license/mit) and the repository's license file for the full terms.
+
+This license grant does not cover separately authored research manuscripts or their extracted text/images, third-party standards, map imagery, third-party dependencies, or externally hosted content. Those materials remain subject to their respective owners' licenses and permissions. Research credits identify authorship and do not grant permission to redistribute their work.
+
+The software is provided without warranty under the license. The [engineering disclaimers and limitations](#disclaimers-and-limitations) also explain how to interpret its outputs; a software license is not a certification of the model or its recommendations.
