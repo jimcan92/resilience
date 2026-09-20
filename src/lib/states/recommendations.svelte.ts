@@ -1,94 +1,139 @@
+import { generateRecommendations } from '$lib/engine/recommendations';
+import {
+	CACHE_PREFIX,
+	CACHE_TTL,
+	isRecommendationList,
+	recommendationCacheKey
+} from '$lib/recommendation-contract';
 import type { AssessmentInput, AssessmentResult } from '$lib/types';
 
+type CacheEntry = { recommendations: string[]; expiresAt: number };
+const MAX_CACHE_ENTRIES = 50;
+
 export class RecommendationState {
-	cachedRecommendations = $state<Map<string, string[]> | null>(null);
+	private cache = new Map<string, CacheEntry>();
+	private requestId = 0;
+	private controller?: AbortController;
 	recommendations = $state<string[]>([]);
 	isLoading = $state(false);
-	recommendationsFrom = $state<'cache' | 'ai' | 'fallback'>('cache');
+	recommendationsFrom = $state<'cache' | 'ai' | 'fallback'>('fallback');
 
-	// Helper para sa pagkuha sa cache key base sa parameters
-	private getCacheKey(result: AssessmentResult): string {
-		const params = result.details?.parameters;
-		const rawMaterial = params?.building?.material ?? 'concrete';
-		const materialType = String(rawMaterial).trim().toLowerCase().replace(/\s+/g, '_');
-
-		const eqBucket = Math.round(result.earthquakeScore / 5) * 5;
-		const tyBucket = Math.round(result.typhoonScore / 5) * 5;
-
-		return `brs_cache_eq${eqBucket}_ty${tyBucket}_m_${materialType}`;
+	load() {
+		try {
+			const keys = Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i));
+			for (const key of keys) {
+				if (!key?.startsWith('brs_cache_')) continue;
+				try {
+					const entry = JSON.parse(localStorage.getItem(key) ?? 'null');
+					if (!key.startsWith(CACHE_PREFIX) || !this.validEntry(entry)) {
+						localStorage.removeItem(key);
+						continue;
+					}
+					this.cache.set(key, entry);
+				} catch {
+					// One corrupt record must not prevent other entries from loading.
+					try {
+						localStorage.removeItem(key);
+					} catch {
+						/* Storage may be unavailable. */
+					}
+				}
+			}
+			this.trimCache();
+		} catch {
+			/* Recommendations still work when browser storage is blocked. */
+		}
 	}
 
-	// 1. Método para makuha daan ang cache (pwede gamiton sa root o paspas nga lookup)
-	load() {
-		console.log('loading cached recommendations');
+	private validEntry(entry: unknown): entry is CacheEntry {
+		if (!entry || typeof entry !== 'object') return false;
+		const value = entry as CacheEntry;
+		return (
+			Number.isFinite(value.expiresAt) &&
+			value.expiresAt > Date.now() &&
+			isRecommendationList(value.recommendations, true)
+		);
+	}
 
-		for (let i = 0; i < localStorage.length; i++) {
-			const key = localStorage.key(i);
-			console.log(`found this key: ${key}`);
-
-			// Pangitaa lang ang mga keys nga nagsugod sa atong cache prefix
-			if (key && key.startsWith('brs_cache_')) {
-				console.log('key is brs cache');
-
-				const data = localStorage.getItem(key);
-				if (data) {
-					console.log(`loaded data: ${data}`);
-
-					if (!this.cachedRecommendations) this.cachedRecommendations = new Map();
-					this.cachedRecommendations.set(key, JSON.parse(data));
-
-					console.log(`updated cached recommendations: ${this.cachedRecommendations}`);
+	private trimCache() {
+		for (const [key, entry] of this.cache) {
+			if (!this.validEntry(entry) || this.cache.size > MAX_CACHE_ENTRIES) {
+				this.cache.delete(key);
+				try {
+					localStorage.removeItem(key);
+				} catch {
+					/* Optional persistence. */
 				}
 			}
 		}
 	}
 
-	// 2. Método nga tawgon ig-submit o ig-kuha sa resulta
+	cancel() {
+		this.requestId++;
+		this.controller?.abort();
+		this.controller = undefined;
+		this.isLoading = false;
+	}
+
 	async fetchRecommendations(input: AssessmentInput, result: AssessmentResult) {
-		// I-set una ang default recommendations gikan sa props as fallback
-		// this.recommendations = result.recommendations || [];
-
-		// Susiha ang cache gamit ang atong cache lookup method
-		// const cachedRecommendations = this.getCached(result);
-		// if (cachedRecommendations) {
-		// 	this.recommendations = cachedRecommendations;
-		// 	return; // Naa na sa cache, human na!
-		// }
-
-		// Kung wala sa cache, tawga ang API sa Vercel
-		const cacheKey = this.getCacheKey(result);
-		console.log(this.cachedRecommendations);
-
-		console.log('cache key', this.cachedRecommendations?.get(cacheKey));
-
-		if (this.cachedRecommendations?.get(cacheKey)) {
-			this.recommendations = this.cachedRecommendations.get(cacheKey) ?? [];
+		this.cancel();
+		const requestId = this.requestId;
+		this.recommendations = generateRecommendations(
+			input,
+			result.earthquakeScore,
+			result.typhoonScore,
+			result.dangerLevel
+		);
+		this.recommendationsFrom = 'fallback';
+		const cacheKey = recommendationCacheKey(input, result);
+		this.trimCache();
+		const cached = this.cache.get(cacheKey);
+		if (cached) {
+			this.recommendations = cached.recommendations;
 			this.recommendationsFrom = 'cache';
 			return;
 		}
 
+		const controller = new AbortController();
+		this.controller = controller;
 		this.isLoading = true;
-
+		const timeout = setTimeout(() => controller.abort(), 25_000);
 		try {
 			const res = await fetch('/api/recommendations', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ input, result })
+				body: JSON.stringify({ input }),
+				signal: controller.signal
 			});
-
+			if (!res.ok) return;
 			const data = await res.json();
-			if (data.recommendations && Array.isArray(data.recommendations)) {
-				this.recommendations = data.recommendations;
-				this.recommendationsFrom = data.recommendationsFrom;
-				// I-save dayon sa LocalStorage para sa sunod
-				if (data.recommendationsFrom == 'ai') {
-					localStorage.setItem(cacheKey, JSON.stringify(this.recommendations));
+			if (requestId !== this.requestId || controller.signal.aborted) return;
+			if (
+				!data ||
+				!['ai', 'fallback'].includes(data.recommendationsFrom) ||
+				!isRecommendationList(data.recommendations, data.recommendationsFrom === 'ai')
+			)
+				return;
+			this.recommendations = data.recommendations;
+			this.recommendationsFrom = data.recommendationsFrom;
+			if (data.recommendationsFrom === 'ai') {
+				const entry = { recommendations: data.recommendations, expiresAt: Date.now() + CACHE_TTL };
+				this.cache.set(cacheKey, entry);
+				this.trimCache();
+				try {
+					localStorage.setItem(cacheKey, JSON.stringify(entry));
+				} catch {
+					/* Keep the memory cache. */
 				}
 			}
-		} catch (e) {
-			console.error(e);
+		} catch {
+			/* Keep the current assessment's local fallback. */
 		} finally {
-			this.isLoading = false;
+			clearTimeout(timeout);
+			if (requestId === this.requestId) {
+				this.isLoading = false;
+				this.controller = undefined;
+			}
 		}
 	}
 }

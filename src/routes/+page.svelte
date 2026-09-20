@@ -6,6 +6,9 @@
 	import { recState } from '$lib/states/recommendations.svelte';
 	import { saveAssessment } from '$lib/storage/localStorage';
 	import type { AssessmentInput, AssessmentResult } from '$lib/types';
+	import { onDestroy } from 'svelte';
+
+	onDestroy(() => recState.cancel());
 
 	let result = $state<AssessmentResult | null>(null);
 	let error = $state('');
@@ -26,6 +29,7 @@
 	}
 
 	function handleReset() {
+		recState.cancel();
 		result = null;
 		error = '';
 	}

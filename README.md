@@ -1,5 +1,26 @@
 # sv
 
+## AI recommendations
+
+Set `GEMINI_API_KEY` in the server environment to enable Gemini recommendations.
+Without a key, or when generation fails, the app uses local rule-based recommendations.
+The endpoint validates inputs and recalculates scores; browser-supplied scores are ignored.
+Gemini receives building/site context and model parameters, but not exact coordinates.
+
+AI requests have a 20-second server deadline and a 25-second browser deadline.
+Successful AI recommendations are cached in the browser for seven days, with up to
+50 entries keyed by exact prompt context and model/prompt version. Rule-based results
+are not cached. Bump `RECOMMENDATION_VERSION` when changing the prompt or AI model.
+
+The endpoint includes a best-effort limit of 10 requests per minute per client address,
+per running server instance. **Before public deployment, configure a shared rate limiter
+or a Vercel Firewall rate-limit rule for POST `/api/recommendations`.** In-memory limits
+reset on cold starts and do not coordinate across serverless instances. Browser caching
+does not provide API abuse protection. Configure provider quotas/budget controls as well.
+
+Run `pnpm test` for engine and mocked recommendation regressions, and `pnpm check`
+for Svelte/TypeScript validation. Tests do not make billable Gemini calls.
+
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
 ## Creating a project

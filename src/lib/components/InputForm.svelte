@@ -236,32 +236,34 @@
 						</p> -->
 
 					<div class="flex flex-col gap-2 md:flex-row md:items-end">
-						<button
-							type="button"
-							onclick={openHazardHunter}
-							class="group btn btn-outline btn-info md:flex-1"
-						>
-							HazardHunterPH
-							<svg
-								class="h-4 w-4 transform text-info transition-transform duration-200 group-hover:-translate-y-1 group-hover:text-info-content"
-								viewBox="0 0 24 24"
-								fill="none"
-								xmlns="http://www.w3.org/2000/svg"
-								><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g
-									id="SVGRepo_tracerCarrier"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-								></g><g id="SVGRepo_iconCarrier">
-									<path
-										d="M7 17L17 7M17 7H8M17 7V16"
-										stroke="currentColor"
-										stroke-width="2"
+						<fieldset class="fieldset flex-1">
+							<button
+								type="button"
+								onclick={openHazardHunter}
+								class="group btn btn-outline btn-info md:flex-1"
+							>
+								HazardHunterPH
+								<svg
+									class="h-4 w-4 transform text-info transition-transform duration-200 group-hover:-translate-y-1 group-hover:text-info-content"
+									viewBox="0 0 24 24"
+									fill="none"
+									xmlns="http://www.w3.org/2000/svg"
+									><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g
+										id="SVGRepo_tracerCarrier"
 										stroke-linecap="round"
 										stroke-linejoin="round"
-									></path>
-								</g></svg
-							>
-						</button>
+									></g><g id="SVGRepo_iconCarrier">
+										<path
+											d="M7 17L17 7M17 7H8M17 7V16"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										></path>
+									</g></svg
+								>
+							</button>
+						</fieldset>
 						<fieldset class="fieldset flex-1">
 							<span class="label">Distance to nearest active fault</span>
 							<label
@@ -308,7 +310,7 @@
 						<h3 class="mb-3 border-b border-base-300 pb-2 text-sm font-medium text-base-content/70">
 							Dimensions
 						</h3>
-						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
 							<fieldset class="fieldset">
 								<span class="label">Building height</span>
 								<label
