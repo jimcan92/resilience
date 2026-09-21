@@ -52,39 +52,37 @@ export function generateRecommendations(
 	// ---------- 3. Typhoon & Wind Hazard Recommendations ----------
 	if (typhoonScore > 75) {
 		recs.push(
-			'🔴 CRITICAL WIND: Very high wind vulnerability. Reinforce roof trusses, purlins, and wall cladding connections.'
+			'🔴 CRITICAL WIND: Very high relative wind-pressure score. Ask a qualified engineer to assess roof and cladding connections; this score does not predict damage.'
 		);
-		recs.push(
-			'🔴 Use impact-resistant glazing and install storm shutters against wind-borne debris.'
-		);
+		recs.push('🔴 Discuss suitable glazing and storm protection with a qualified engineer.');
 	} else if (typhoonScore > 50) {
 		recs.push(
-			'🟠 HIGH WIND: Check roof sheathing fastener spacing and uplift anchorage per NSCP 2015 Table 207B.'
+			'🟠 HIGH WIND: High relative wind-pressure score. Request an engineering review of roof fasteners and uplift anchorage.'
 		);
 	} else if (typhoonScore > 25) {
 		recs.push(
-			'🟡 MODERATE WIND: Ensure structural roof clips / hurricane ties are properly installed on all rafter-to-wall joints.'
+			'🟡 MODERATE WIND: Moderate relative wind-pressure score. Discuss roof-to-wall connections with a qualified engineer.'
 		);
 	}
 
 	// ---------- 4. Building Typology & Material Specifics ----------
 	if (building.material === 'timber') {
 		recs.push(
-			'ℹ️ TIMBER STRUCTURE: Use galvanized steel hurricane straps, preservative-treated framing, and shear wall anchor bolts.'
+			'ℹ️ TIMBER STRUCTURE: Discuss connection detailing, timber condition and anchorage with a qualified engineer; these details are not modeled by the score.'
 		);
 	} else if (building.material === 'masonry') {
 		recs.push(
-			'ℹ️ MASONRY STRUCTURE: Provide reinforced concrete tie beams and stiffener columns at all corner intersections.'
+			'ℹ️ MASONRY STRUCTURE: Ask an engineer to review wall reinforcement and connections; the score does not assess masonry capacity.'
 		);
 	}
 
 	if (building.roofType === 'flat') {
 		recs.push(
-			'⚠️ FLAT ROOF: Prone to severe wind suction on eaves and ponding water. Ensure reinforced parapets and positive slope drainage.'
+			'⚠️ FLAT ROOF: Ask an engineer to review local uplift, drainage and roof-edge details; these are not evaluated by the hazard score.'
 		);
 	} else if (building.roofType === 'monoslope') {
 		recs.push(
-			'⚠️ MONOSLOPE ROOF: Asymmetric wind uplift on high eave. Double rafter tie anchors on windward edge.'
+			'⚠️ MONOSLOPE ROOF: Ask an engineer to review asymmetric uplift and connection details; the hazard score does not determine anchorage requirements.'
 		);
 	}
 

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import favicon from '$lib/assets/favicon.png';
 	import Header from '$lib/components/Header.svelte';
 	import { recState } from '$lib/states/recommendations.svelte';
 	import { appStatus } from '$lib/states/status.svelte';
@@ -46,8 +45,6 @@
 
 	let { children } = $props();
 </script>
-
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
 <div class="bg-blueprint-grid flex min-h-screen flex-col bg-base-200">
 	<Header />

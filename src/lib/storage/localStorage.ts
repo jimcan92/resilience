@@ -52,7 +52,11 @@ export function getAssessments(): SavedAssessment[] {
 					(!item.result.modelVersion ||
 						(Number.isFinite(item.result.buildingResilienceScore) &&
 							Number.isFinite(item.result.details?.windPressure) &&
-							Number.isFinite(item.result.details?.fragilityProbability)))
+							(item.result.windScoringMethod === 'fixed-reference-pressure'
+								? item.result.details?.resolvedParameters?.windScoringMethod ===
+										'fixed-reference-pressure' &&
+									isResolvedModelParameters(item.result.details.resolvedParameters)
+								: Number.isFinite(item.result.details?.fragilityProbability))))
 			);
 		}
 		return [];

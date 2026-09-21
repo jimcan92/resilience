@@ -2,7 +2,7 @@
 	import ParameterNumber from '$lib/components/ParameterNumber.svelte';
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import soilFactors from '$lib/data/soil-factors.json';
-	import { getBuildingWindCapacity, getKz } from '$lib/engine/wind';
+	import { referenceWindBounds, getKz } from '$lib/engine/wind';
 	import type { AssessmentInput, ModelParameters } from '$lib/types';
 	let {
 		input,
@@ -19,7 +19,13 @@
 		{ value: 'default', label: 'Default' },
 		{ value: 'custom', label: 'Custom' }
 	];
-	let capacity = $derived(getBuildingWindCapacity(input.building));
+	let bounds = $derived.by(() => {
+		try {
+			return referenceWindBounds(parameters.windSpeedMin, parameters.windSpeedMax);
+		} catch {
+			return null;
+		}
+	});
 	let kz = $derived.by(() => {
 		try {
 			return getKz(input.building.height, input.hazard.exposure ?? 'C').toFixed(3);
@@ -34,14 +40,11 @@
 				: [
 						'kzt',
 						'kd',
-						'theta',
-						'beta',
-						'damageState',
-						'reference',
+						'windSpeedMin',
+						'windSpeedMax',
 						'pgaMin',
 						'pgaMax',
-						'earthquakeWeight',
-						'fragilityMode'
+						'earthquakeWeight'
 					].includes(key)
 		)
 	);
@@ -49,7 +52,7 @@
 
 <details class="rounded-lg border border-base-300 p-4" open={hasErrors}>
 	<summary class="cursor-pointer font-medium"
-		>Advanced parameters — {section === 'site' ? 'soil' : 'wind, fragility and scoring'}</summary
+		>Advanced parameters — {section === 'site' ? 'soil' : 'wind and scoring'}</summary
 	>
 	<div class="mt-4 space-y-5">
 		{#if section === 'site'}
@@ -91,62 +94,38 @@
 			<p class="text-sm">
 				Computed exposure coefficient Kz: <strong>{kz}</strong> (height and exposure; read-only).
 			</p>
-			<fieldset class="fieldset">
-				<span class="label">Fragility parameter mode</span>
-				<SegmentedControl options={modes} bind:value={parameters.fragilityMode} />
-			</fieldset>
-			{#if parameters.fragilityMode === 'custom'}
-				<p class="text-sm">
-					User-supplied curve for velocity pressure qz in Pa. Material, roof and configuration
-					multipliers are not applied to custom θ.
-				</p>
-				<div class="grid gap-4 sm:grid-cols-2">
-					<ParameterNumber
-						name="theta"
-						label="Median capacity θ (Pa)"
-						hint="Positive median for the stated damage state, using velocity pressure as the intensity measure."
-						bind:value={parameters.theta}
-						error={errors.theta}
-					/>
-					<ParameterNumber
-						name="beta"
-						label="Dispersion β"
-						hint="Positive, dimensionless lognormal dispersion."
-						bind:value={parameters.beta}
-						error={errors.beta}
-					/>
-				</div>
-				<fieldset class="fieldset">
-					<label for="damage-state" class="label">Damage-state description</label>
-					<input
-						id="damage-state"
-						class="input-bordered input w-full"
-						bind:value={parameters.damageState}
-						aria-invalid={!!errors.damageState}
-					/>
-				</fieldset>
-				{#if errors.damageState}<p role="alert" class="text-xs text-error">
-						{errors.damageState}
-					</p>{/if}
-				<fieldset class="fieldset">
-					<label for="curve-source" class="label">Curve source / reference</label>
-					<textarea
-						id="curve-source"
-						class="textarea-bordered textarea w-full"
-						bind:value={parameters.reference}
-						aria-invalid={!!errors.reference}></textarea>
-				</fieldset>
-				{#if errors.reference}<p role="alert" class="text-xs text-error">{errors.reference}</p>{/if}
-				<p class="text-xs text-base-content/70">
-					References are recorded as supplied, not independently validated.
-				</p>
-			{:else}
-				<p class="text-sm">
-					Illustrative θ = <strong>{capacity.theta} Pa</strong>, β =
-					<strong>{capacity.beta}</strong>. Follows material, roof and configuration. Damage state
-					unspecified; no calibrated source.
-				</p>
-			{/if}
+			<div class="grid gap-4 sm:grid-cols-2">
+				<ParameterNumber
+					name="windSpeedMin"
+					label="Minimum reference wind speed (km/h)"
+					hint="At least zero. Researcher-supplied default: 61 km/h."
+					bind:value={parameters.windSpeedMin}
+					error={errors.windSpeedMin}
+				/>
+				<ParameterNumber
+					name="windSpeedMax"
+					label="Maximum reference wind speed (km/h)"
+					hint="Must exceed the minimum. Researcher-supplied default: 315 km/h."
+					bind:value={parameters.windSpeedMax}
+					error={errors.windSpeedMax}
+				/>
+			</div>
+			<p class="text-sm">
+				Fixed reference: 10 m height, Exposure C, Kz = 1, Kzt = 1, Kd = 0.85. These implementation
+				assumptions are independent of the actual building factors above.
+			</p>
+			{#if bounds}<p class="text-sm">
+					Derived reference pressure: {bounds.windPressureMin.toFixed(
+						1
+					)}–{bounds.windPressureMax.toFixed(1)} Pa ({(bounds.windPressureMin / 1000).toFixed(3)}–{(
+						bounds.windPressureMax / 1000
+					).toFixed(3)} kPa).
+				</p>{/if}
+			<p class="text-xs text-base-content/70">
+				The scientific source of the default speed bounds has not been verified. Custom bounds are
+				user supplied. This normalization measures relative wind pressure, not damage probability.
+			</p>
+
 			<div class="grid gap-4 sm:grid-cols-2">
 				<ParameterNumber
 					name="pgaMin"

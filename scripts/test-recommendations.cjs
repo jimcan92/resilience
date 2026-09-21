@@ -60,6 +60,30 @@ const input = {
 	hazard: { magnitude: 7, windSpeed: 250, exposure: 'C' }
 };
 const result = assess(input);
+const { defaultModelParameters } = load('src/lib/engine/parameters.ts');
+const supplied = { ...input, modelParameters: defaultModelParameters() };
+assert.deepEqual(parseAssessmentInput(supplied), supplied);
+for (const patch of [
+	{ windSpeedMin: -1 },
+	{ windSpeedMax: 61 },
+	{ windSpeedMax: Infinity },
+	{ windSpeedMin: undefined }
+])
+	assert.throws(() =>
+		parseAssessmentInput({
+			...supplied,
+			modelParameters: { ...supplied.modelParameters, ...patch }
+		})
+	);
+assert.ok(CACHE_PREFIX.includes('v3-wind-normalization'));
+const changedBounds = {
+	...input,
+	modelParameters: { ...defaultModelParameters(), windSpeedMax: 400 }
+};
+assert.notEqual(
+	recommendationCacheKey(input, result),
+	recommendationCacheKey(changedBounds, assess(changedBounds))
+);
 const other = structuredClone(input);
 other.building.roofType = 'flat';
 const otherResult = assess(other);
@@ -221,6 +245,17 @@ const invoke = (body, address = String(++clientId)) =>
 	assert.equal((await valid.json()).recommendationsFrom, 'ai');
 	const context = JSON.parse(config.contents);
 	assert.equal(context.earthquakeScore, result.earthquakeScore);
+	assert.equal(context.typhoonScore, 64);
+	assert.equal(context.windScoringMethod, 'fixed-reference-pressure');
+	assert.equal(context.windPressureRange, 'within');
+	assert.equal(context.parameters.windSpeedMin, 61);
+	assert.equal(context.parameters.windSpeedMax, 315);
+	assert.equal(context.parameters.windReference.height, 10);
+	assert.ok(config.config.systemInstruction.includes('not damage probability'));
+	const customReply = await invoke(JSON.stringify({ input: changedBounds }));
+	assert.equal(customReply.status, 200);
+	assert.equal(JSON.parse(config.contents).parameters.windSpeedMax, 400);
+	assert.equal(JSON.parse(config.contents).typhoonScore, assess(changedBounds).typhoonScore);
 	assert.equal(context.building.material, 'concrete');
 	assert.equal(context.site.soilType, 'medium');
 	assert.equal(context.site.latitude, undefined);

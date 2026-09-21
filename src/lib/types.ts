@@ -57,7 +57,7 @@ export interface AssessmentDetails {
 	pga: number; // Peak Ground Acceleration in g (Fukushima & Tanaka 1990)
 	pgaGal: number; // Acceleration in cm/s² (gal)
 	windPressure: number; // Velocity pressure qz in Pa (NSCP 2015)
-	fragilityProbability: number; // P(DS >= ds | IM) from 0 to 1
+	fragilityProbability?: number; // P(DS >= ds | IM) from 0 to 1
 	haversineDistance: number | null;
 	parameters?: AssessmentInput;
 }
@@ -65,6 +65,7 @@ export interface AssessmentDetails {
 // ---------- Assessment Result ----------
 export interface AssessmentResult {
 	modelVersion?: string;
+	windScoringMethod?: 'fixed-reference-pressure' | 'fragility';
 	earthquakeScore: number; // HE (0-100)
 	typhoonScore: number; // HT (0-100)
 	buildingResilienceScore: number; // BRS (0-100)
@@ -200,16 +201,38 @@ export interface ModelParameters {
 	soilMultiplier: number;
 	kzt: number;
 	kd: number;
+	windSpeedMin: number; // reference km/h
+	windSpeedMax: number; // reference km/h
+	pgaMin: number;
+	pgaMax: number;
+	earthquakeWeight: number; // percent
+}
+export interface NormalizedModelParameters extends ModelParameters {
+	windScoringMethod: 'fixed-reference-pressure';
+	kz: number;
+	typhoonWeight: number;
+	windReference: {
+		height: number;
+		exposure: ExposureCategory;
+		kzt: number;
+		kd: number;
+		kz: number;
+	};
+	windPressureMin: number;
+	windPressureMax: number;
+}
+/** Persisted old snapshots only; never used to calculate new assessments. */
+export interface LegacyResolvedModelParameters extends Omit<
+	ModelParameters,
+	'windSpeedMin' | 'windSpeedMax'
+> {
+	windScoringMethod?: 'fragility';
 	fragilityMode: ParameterMode;
 	theta: number;
 	beta: number;
 	damageState: string;
 	reference: string;
-	pgaMin: number;
-	pgaMax: number;
-	earthquakeWeight: number; // percent
-}
-export interface ResolvedModelParameters extends ModelParameters {
 	kz: number;
-	typhoonWeight: number; // percent
+	typhoonWeight: number;
 }
+export type ResolvedModelParameters = NormalizedModelParameters | LegacyResolvedModelParameters;

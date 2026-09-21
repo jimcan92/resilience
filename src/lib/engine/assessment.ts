@@ -1,7 +1,7 @@
 import { resolveModelParameters } from '$lib/engine/parameters';
 import { estimatePGA, pgaToScore } from '$lib/engine/pga';
 import { calculateRisk } from '$lib/engine/risk';
-import { calculateWindPressure, windToFragilityScore } from '$lib/engine/wind';
+import { calculateWindPressure, windToNormalizedScore } from '$lib/engine/wind';
 import type { AssessmentInput, AssessmentResult } from '$lib/types';
 
 export function assess(input: AssessmentInput): AssessmentResult {
@@ -21,10 +21,10 @@ export function assess(input: AssessmentInput): AssessmentResult {
 		resolvedParameters.kzt,
 		resolvedParameters.kd
 	);
-	const { score: typhoonScore, probability: fragilityProbability } = windToFragilityScore(
+	const typhoonScore = windToNormalizedScore(
 		windPressure,
-		input.building,
-		resolvedParameters
+		resolvedParameters.windPressureMin,
+		resolvedParameters.windPressureMax
 	);
 
 	const { buildingResilienceScore, resilienceIndex, dangerLevel } = calculateRisk(
@@ -44,7 +44,8 @@ export function assess(input: AssessmentInput): AssessmentResult {
 	// );
 
 	return {
-		modelVersion: 'paper-2026-09-parameters-2',
+		modelVersion: 'paper-2026-09-wind-normalization-3',
+		windScoringMethod: 'fixed-reference-pressure',
 		buildingResilienceScore,
 		earthquakeScore,
 		typhoonScore,
@@ -56,7 +57,6 @@ export function assess(input: AssessmentInput): AssessmentResult {
 			pga,
 			pgaGal,
 			windPressure,
-			fragilityProbability,
 			haversineDistance: null,
 			parameters: structuredClone(input)
 		}

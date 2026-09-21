@@ -1,7 +1,7 @@
 import type { AssessmentInput, AssessmentResult } from '$lib/types';
 
 // Bump when the prompt, model, or recommendation contract changes.
-export const RECOMMENDATION_VERSION = 'gemini-2.5-flash-v2';
+export const RECOMMENDATION_VERSION = 'gemini-2.5-flash-v3-wind-normalization';
 export const CACHE_PREFIX = `brs_cache_${RECOMMENDATION_VERSION}_`;
 export const CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 
@@ -18,6 +18,7 @@ export function isRecommendationList(value: unknown, ai = false): value is strin
 export function recommendationContext(input: AssessmentInput, result: AssessmentResult) {
 	return {
 		modelVersion: result.modelVersion,
+		windScoringMethod: result.windScoringMethod,
 		site: { soilType: input.site.soilType, faultDistanceKm: input.site.faultDistance },
 		building: {
 			material: input.building.material,
@@ -39,6 +40,14 @@ export function recommendationContext(input: AssessmentInput, result: Assessment
 		typhoonScore: result.typhoonScore,
 		pgaG: result.details.pga,
 		velocityPressurePa: result.details.windPressure,
+		windPressureRange:
+			result.details.resolvedParameters?.windScoringMethod === 'fixed-reference-pressure'
+				? result.details.windPressure < result.details.resolvedParameters.windPressureMin
+					? 'below'
+					: result.details.windPressure > result.details.resolvedParameters.windPressureMax
+						? 'above'
+						: 'within'
+				: undefined,
 		parameters: result.details.resolvedParameters
 	};
 }

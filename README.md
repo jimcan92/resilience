@@ -31,7 +31,7 @@ A web-based research prototype for exploring earthquake and typhoon-wind scenari
 
 R.E.S.I.L.I.E.N.C.E. explores how a simplified web application can bring earthquake and wind calculations into one assessment workflow. Users can compare scenarios, inspect the assumptions behind a result, and identify topics to discuss with a qualified professional.
 
-The repository implements a research workflow using a ground-motion equation attributed in the source to Fukushima and Tanaka (1990), a wind velocity-pressure calculation referencing NSCP 2015, an illustrative wind fragility curve, and a weighted combination of the two model scores. These references explain the implementation's basis; they do not demonstrate that the complete application has been independently validated for engineering practice.
+The repository implements a research workflow using a ground-motion equation attributed in the source to Fukushima and Tanaka (1990), a wind velocity-pressure calculation referencing NSCP 2015, fixed-reference wind-pressure normalization, and a weighted combination of the two model scores. These references explain the implementation's basis; they do not demonstrate that the complete application has been independently validated for engineering practice.
 
 The tool is intended for educational exploration, research demonstrations, and preliminary scenario comparison. It is not a complete structural analysis package, a real-time hazard monitoring service, or an official government hazard report.
 
@@ -45,9 +45,9 @@ This README describes the repository implementation. The deployed website may di
 | Location selection      | Interactive Leaflet map, draggable marker, map layers, coordinate copying, and optional browser geolocation |
 | HazardHunterPH link     | Opens an external reference tool; users obtain and enter fault distance manually                            |
 | Earthquake calculation  | Estimates PGA and converts it to a normalized earthquake score                                              |
-| Wind calculation        | Calculates velocity pressure and an illustrative fragility-based typhoon score                              |
+| Wind calculation        | Calculates velocity pressure and a normalized wind-hazard score                                             |
 | Combined result         | Displays BRS, a model danger category, individual hazard scores, and a comparison chart                     |
-| Editable assumptions    | Soil multiplier, wind factors, fragility parameters, scoring bounds, and hazard weights                     |
+| Editable assumptions    | Soil multiplier, wind factors, reference speeds, scoring bounds, and hazard weights                         |
 | Recommendations         | Local rule-based guidance, with optional Gemini-generated guidance and a browser cache                      |
 | Assessment history      | Stores up to 50 assessments in the current browser, including calculation snapshots                         |
 | Presentation            | Responsive layout and selectable themes                                                                     |
@@ -87,7 +87,7 @@ The selected coordinates provide location context. Moving the map marker does **
 | Roof             | Flat, gable, hip, monoslope                            | Select the applicable category     |
 | Configuration    | Regular, irregular                                     | Select the applicable category     |
 
-Height affects the wind exposure coefficient. Material, roof type, and configuration affect the **default** wind fragility mapping. Floors, length, and width are recorded and included in recommendation context, but do not change the current score equations.
+Height affects the wind exposure coefficient and score. Material, roof type, configuration, floors, length, and width provide recommendation context only; they do not change the current numerical scores. Legacy default fragility scores used material, roof, and configuration.
 
 These categories are simplified inputs. They do not capture reinforcement details, connection quality, deterioration, construction defects, or the actual strength of the building.
 
@@ -121,15 +121,14 @@ History is specific to this browser and website origin. It does not synchronize 
 
 ## Understanding the results
 
-| Output                         | Meaning within this model                                                                                           |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| Earthquake hazard score, HE    | A 0–100 score obtained by normalizing estimated PGA; higher means greater modeled ground-motion demand              |
-| Typhoon hazard score, HT       | A 0–100 score derived from the selected wind fragility curve; higher means a higher modeled curve value             |
-| Building Resilience Score, BRS | The complement of the weighted combined score; higher means lower combined model scores                             |
-| PGA                            | Estimated peak ground acceleration, displayed in g and gal                                                          |
-| Velocity pressure qz           | Wind velocity pressure, displayed in kPa; internally calculated in Pa                                               |
-| Illustrative fragility         | The selected curve's output, shown as a percentage; the default curve is not calibrated to a specified damage state |
-| Danger category                | A label derived from the combined model score, not an official building safety classification                       |
+| Output                         | Meaning within this model                                                                                         |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Earthquake hazard score, HE    | A 0–100 score obtained by normalizing estimated PGA; higher means greater modeled ground-motion demand            |
+| Typhoon hazard score, HT       | A 0–100 normalized wind-pressure score; higher means higher demand relative to the selected fixed reference range |
+| Building Resilience Score, BRS | The complement of the weighted combined score; higher means lower combined model scores                           |
+| PGA                            | Estimated peak ground acceleration, displayed in g and gal                                                        |
+| Velocity pressure qz           | Wind velocity pressure, displayed in kPa; internally calculated in Pa                                             |
+| Danger category                | A label derived from the combined model score, not an official building safety classification                     |
 
 The combined score is classified **before rounding**:
 
@@ -146,7 +145,7 @@ Individual hazard labels use the same thresholds. A combined score can conceal a
 
 ## Calculation methodology
 
-The following equations document the code's behavior, not an independently verified design procedure. The current assessment model identifier is `paper-2026-09-parameters-2`.
+The following equations document the code's behavior, not an independently verified design procedure. The current assessment model identifier is `paper-2026-09-wind-normalization-3`.
 
 ### Earthquake component
 
@@ -168,26 +167,16 @@ The suitability of the magnitude scale, distance definition, equation, and soil 
 ```text
 V = windSpeed_kph / 3.6
 qz = 0.613 × Kz × Kzt × Kd × V²
-P = Φ(ln(qz / θ) / β)
-HT = round(clamp(100 × P, 0, 100))
+qMin = pressure(referenceSpeedMin, height=10 m, exposure=C, Kzt=1, Kd=0.85)
+qMax = pressure(referenceSpeedMax, height=10 m, exposure=C, Kzt=1, Kd=0.85)
+HT = round(100 × clamp((qz - qMin) / (qMax - qMin), 0, 1))
 ```
 
-`qz` is in Pa, `Kz` is interpolated from the bundled height/exposure table, `Kzt` is the topographic factor, and `Kd` is the directionality factor. `Φ` is the standard normal cumulative distribution function. At zero pressure, the engine returns zero fragility; the user form requires a positive wind speed.
+The researcher-supplied default reference speeds are **61–315 km/h**; their scientific source has not been verified. The fixed reference conditions are **implementation assumptions**, not validated damage thresholds. Kz at the 10 m Exposure C reference is 1 in the bundled table, giving approximately **149.6–3,989.3 Pa**. The engine uses exact derived values, never these rounded display values.
 
-Default median parameter `θ` is computed as:
+Actual pressure uses the assessed building's height, exposure, Kzt and Kd, independently of the reference. All pressures are in Pa internally and displayed in Pa or kPa (1 kPa = 1000 Pa). The reference speeds can be edited in Advanced settings; the reference conditions remain fixed in this version. Speeds must be finite with 0 ≤ minimum < maximum and yield distinct finite pressure bounds.
 
-```text
-θ = materialBase × roofMultiplier × configurationMultiplier
-```
-
-| Default mapping          | Values                                               |
-| ------------------------ | ---------------------------------------------------- |
-| Material base, Pa        | Concrete 4800; steel 4200; masonry 3200; timber 2400 |
-| Roof multiplier          | Hip 1.20; gable 1.00; monoslope 0.90; flat 0.80      |
-| Configuration multiplier | Regular 1.00; irregular 0.85                         |
-| Dispersion, β            | 0.35                                                 |
-
-These are **illustrative prototype values**, not verified material capacities or calibrated building fragility curves. A custom curve replaces the default θ and β; the material/roof/configuration multipliers are not applied again.
+Scores below/above the pressure range are capped at 0/100 and the Results card identifies that condition while preserving actual pressure. This is a relative wind-hazard index, **not damage probability or structural resistance**. Material, roof and configuration no longer affect HT. Default form inputs produce HT = 64/100. Legacy fragility functions remain available for historical verification; new assessments do not use them.
 
 Velocity pressure is not a complete wall, roof, or connection design pressure. The current calculation does not perform a complete structural wind-load or resistance check.
 
@@ -205,23 +194,21 @@ Default weights are 0.50 each. The stored BRS and displayed scores are rounded. 
 
 ## Advanced parameters
 
-| Parameter                | Default           | Accepted condition / behavior                                                 |
-| ------------------------ | ----------------- | ----------------------------------------------------------------------------- |
-| Soil mode                | Default           | Custom mode uses the supplied multiplier instead of the soil-category mapping |
-| Custom soil multiplier   | Initially 0.87    | Positive; changing soil category does not update this custom value            |
-| Kzt                      | 1.00              | At least 1                                                                    |
-| Kd                       | 0.85              | Greater than 0 and no more than 1                                             |
-| Kz                       | Calculated        | Read-only; derived from height and exposure                                   |
-| Fragility mode           | Default           | Custom mode uses supplied θ and β                                             |
-| Custom θ                 | Initially 4800 Pa | Positive; must be appropriate to qz in Pa as the intensity measure            |
-| Custom β                 | Initially 0.35    | Positive lognormal dispersion                                                 |
-| Damage-state description | Empty             | Required for a custom fragility curve                                         |
-| Curve source/reference   | Empty             | Required for a custom curve; recorded as supplied, not verified               |
-| PGA minimum              | 0 g               | Nonnegative                                                                   |
-| PGA maximum              | 0.8 g             | Greater than the minimum                                                      |
-| Earthquake weight        | 50%               | From 0 to 100%; typhoon weight is the remainder                               |
+| Parameter              | Default                 | Accepted condition / behavior                                                 |
+| ---------------------- | ----------------------- | ----------------------------------------------------------------------------- |
+| Soil mode              | Default                 | Custom mode uses the supplied multiplier instead of the soil-category mapping |
+| Custom soil multiplier | Initially 0.87          | Positive; changing soil category does not update this custom value            |
+| Kzt                    | 1.00                    | At least 1                                                                    |
+| Kd                     | 0.85                    | Greater than 0 and no more than 1                                             |
+| Kz                     | Calculated              | Read-only; derived from height and exposure                                   |
+| Reference wind minimum | 61 km/h                 | Finite, nonnegative; source unverified                                        |
+| Reference wind maximum | 315 km/h                | Finite and greater than minimum                                               |
+| Reference conditions   | 10 m, C, Kzt 1, Kd 0.85 | Fixed implementation assumptions; shown read-only                             |
+| PGA minimum            | 0 g                     | Nonnegative                                                                   |
+| PGA maximum            | 0.8 g                   | Greater than the minimum                                                      |
+| Earthquake weight      | 50%                     | From 0 to 100%; typhoon weight is the remainder                               |
 
-Changing scoring bounds or weights changes the meaning of comparisons. Compare assessments using consistent model versions and assumptions. Saved records include resolved parameter snapshots; legacy records may not contain those snapshots and are not automatically recalculated.
+Changing scoring bounds or weights changes the meaning of comparisons. Compare assessments using consistent model versions and assumptions. New saved records include the scoring method, reference speeds, fixed reference conditions and exact pressure bounds. Old results retain original scores and legacy labels without recalculation; legacy records may not contain those snapshots and are not automatically recalculated.
 
 ## AI recommendations
 
@@ -294,7 +281,7 @@ New AI generation, external maps, and HazardHunterPH require internet access. Pr
 4. **Input-dependent results.** The app does not verify user-entered distances, soil, wind speed, magnitude, building characteristics, or custom sources. Demonstration defaults may be unsuitable for the site.
 5. **Limited hazard coverage.** The current equations cover a simplified earthquake ground-motion scenario and wind scenario. They do not assess flooding, storm surge, landslides, liquefaction, tsunami, fire, or all secondary and cascading hazards.
 6. **Limited structural detail.** Actual construction quality, age, deterioration, connections, reinforcement, foundations, occupancy, and observed damage are not comprehensively modeled. The earthquake score does not model building-specific seismic capacity.
-7. **Illustrative assumptions.** Default fragility parameters, soil factors, normalization bounds, weights, and category thresholds require research justification and calibration. A custom source is not independently checked by the app.
+7. **Illustrative assumptions.** Reference conditions, soil factors, normalization bounds, weights, and category thresholds require research justification and calibration. A custom source is not independently checked by the app.
 8. **AI can be wrong.** Generated guidance may be incomplete, misleading, or inappropriate. JSON validation checks format, not engineering correctness. Rule-based advice also requires review.
 9. **Not an emergency tool.** Do not use the calculator to make evacuation or re-entry decisions. Consult official advisories and qualified local authorities for an actual event.
 10. **No implied endorsement.** References or links to government agencies, engineering standards, and service providers do not imply that those organizations endorse or certify this project.

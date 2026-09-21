@@ -35,32 +35,13 @@
 		info: { border: 'border-info', text: 'text-info', softBg: 'bg-info/10', fill: 'bg-info' }
 	};
 
+	let windParameters = $derived(result.details.resolvedParameters);
 	let dangerColorKey = $derived(dangerLevelColor(result.dangerLevel));
 	let colors = $derived(colorClasses[dangerColorKey] ?? colorClasses.warning);
 	let dangerEmojiChar = $derived(dangerLevelEmoji(result.dangerLevel));
 </script>
 
 <div class="space-y-6 py-6">
-	<!-- {#if result.details.resolvedParameters}<ParameterSummary
-			parameters={result.details.resolvedParameters}
-		/>{/if}
-	<div class="space-y-2 rounded-lg border border-warning/40 bg-warning/10 p-4 text-sm">
-		<p>
-			Research prototype: higher BRS means lower combined model scores; it is not a probability of
-			building safety.
-		</p>
-		<p>
-			Scoring bounds, weights and soil factors require research justification. Default wind capacity
-			and dispersion are illustrative; custom curves are user supplied. Velocity pressure is not a
-			complete wall or roof design pressure.
-		</p>
-		<p>
-			Wind exposure: {result.details.parameters?.hazard.exposure ?? 'C'}. Material, roof and
-			configuration affect default wind fragility only. Floors, length and width are recorded but do
-			not affect these scores. Fault distance is entered manually.
-		</p>
-		<p class="text-xs">Model: {result.modelVersion}</p>
-	</div> -->
 	<div class="card border-2 {colors.border} {colors.softBg}">
 		<div class="card-body text-center">
 			<h2 class="font-display text-3xl font-semibold {colors.text}">
@@ -107,11 +88,32 @@
 				<p class="font-data text-center text-xs text-base-content/60">
 					Velocity pressure qz: {(result.details.windPressure / 1000).toFixed(2)} kPa
 				</p>
-				<p class="text-center text-xs">
-					Illustrative fragility: {(result.details.fragilityProbability * 100).toFixed(1)}% · {scoreToDangerLevel(
-						result.typhoonScore
-					)}
-				</p>
+				{#if windParameters?.windScoringMethod === 'fixed-reference-pressure'}
+					<p class="text-center text-xs">
+						Normalized wind-hazard score · {scoreToDangerLevel(result.typhoonScore)}
+						— relative pressure, not damage probability.
+					</p>
+					<p class="text-center text-xs">
+						Reference range: {(windParameters.windPressureMin / 1000).toFixed(3)}–{(
+							windParameters.windPressureMax / 1000
+						).toFixed(3)} kPa
+					</p>
+					{#if result.details.windPressure < windParameters.windPressureMin}
+						<p class="text-center text-sm text-warning">
+							Below reference range — score capped at 0.
+						</p>
+					{:else if result.details.windPressure > windParameters.windPressureMax}
+						<p class="text-center text-sm text-warning">
+							Above reference range — score capped at 100.
+						</p>
+					{/if}
+				{:else if result.details.fragilityProbability !== undefined}
+					<p class="text-center text-xs">
+						Legacy fragility: {(result.details.fragilityProbability * 100).toFixed(1)}% · {scoreToDangerLevel(
+							result.typhoonScore
+						)}
+					</p>
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -163,14 +165,15 @@
 					of building safety.
 				</p>
 				<p>
-					Scoring bounds, weights and soil factors require research justification. Default wind
-					capacity and dispersion are illustrative; custom curves are user supplied. Velocity
-					pressure is not a complete wall or roof design pressure.
+					Scoring bounds, weights and soil factors require research justification. Wind
+					normalization is a relative hazard index; it does not estimate structural resistance.
+					Velocity pressure is not a complete wall or roof design pressure.
 				</p>
 				<p>
 					Wind exposure: {result.details.parameters?.hazard.exposure ?? 'C'}. Material, roof and
-					configuration affect default wind fragility only. Floors, length and width are recorded
-					but do not affect these scores. Fault distance is entered manually.
+					configuration are recommendation context for normalized scores; they affect legacy default
+					fragility only. Floors, length and width are recorded but do not affect these scores.
+					Fault distance is entered manually.
 				</p>
 				<p class="text-xs">Model: {result.modelVersion}</p>
 			</div>

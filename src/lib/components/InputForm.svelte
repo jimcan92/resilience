@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { calculateWindPressure } from '$lib/engine/wind';
 	import AdvancedParameters from '$lib/components/AdvancedParameters.svelte';
 	import MapPicker from '$lib/components/MapPicker.svelte';
 	import ParameterSummary from '$lib/components/ParameterSummary.svelte';
@@ -46,6 +47,19 @@
 	let preview = $derived.by(() => {
 		try {
 			return resolveModelParameters({ ...form, modelParameters: parameters });
+		} catch {
+			return null;
+		}
+	});
+	let reviewPressure = $derived.by(() => {
+		try {
+			return calculateWindPressure(
+				form.hazard.windSpeed,
+				form.building.height,
+				form.hazard.exposure,
+				parameters.kzt,
+				parameters.kd
+			);
 		} catch {
 			return null;
 		}
@@ -301,6 +315,10 @@
 				<div class="card-body gap-6">
 					<div>
 						<h2 class="font-display text-lg font-semibold">Building information</h2>
+						<p class="text-sm text-base-content/70">
+							Height affects the wind-hazard score. Material, roof, configuration, floors, length
+							and width provide recommendation context; they do not change the numerical scores.
+						</p>
 						<p class="text-sm text-base-content/60">
 							Describe the structure being assessed. Floors, length and width are recorded but do
 							not affect the current equations.
@@ -540,7 +558,14 @@
 					</div>
 				</div>
 			</div>
-			{#if preview}<ParameterSummary parameters={preview} />{/if}
+			{#if preview}
+				{#if reviewPressure !== null}<p class="text-sm">
+						Calculated velocity pressure: {(reviewPressure / 1000).toFixed(3)} kPa ({reviewPressure.toFixed(
+							1
+						)} Pa).
+					</p>{/if}
+				<ParameterSummary parameters={preview} />
+			{/if}
 		{/if}
 
 		<div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">

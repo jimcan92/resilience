@@ -9,11 +9,7 @@
 <header class="sticky top-0 z-10 border-b border-base-300 bg-base-100/95 backdrop-blur">
 	<div class="container mx-auto flex max-w-5xl items-center justify-between gap-2 px-4 py-3">
 		<a href="/" class="flex items-center gap-2">
-			<img
-				src="/android/launchericon-192x192.png"
-				alt="R.E.S.I.L.I.E.N.C.E."
-				class="h-9 w-9 rounded-md"
-			/>
+			<img src="/icon.svg" alt="R.E.S.I.L.I.E.N.C.E." class="h-9 w-9 shrink-0" />
 			<div class="flex flex-col">
 				<h1 class="font-display text-lg leading-tight font-semibold tracking-tight text-primary">
 					R.E.S.I.L.I.E.N.C.E.

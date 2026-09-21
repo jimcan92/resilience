@@ -78,14 +78,21 @@
 						>
 							<div>Earthquake: {assessment.result.earthquakeScore}</div>
 							<div>Typhoon: {assessment.result.typhoonScore}</div>
+							<div>
+								{assessment.result.windScoringMethod === 'fixed-reference-pressure'
+									? 'Normalized wind hazard'
+									: 'Legacy wind scoring'}
+							</div>
 							<div>Fault: {assessment.input.site.faultDistance} km</div>
 							<div>Height: {assessment.input.building.height} m</div>
 							{#if assessment.result.modelVersion}<div>
 									qz: {(assessment.result.details.windPressure / 1000).toFixed(2)} kPa
 								</div>
-								<div>
-									Fragility: {(assessment.result.details.fragilityProbability * 100).toFixed(1)}%
-								</div>
+								{#if assessment.result.details.fragilityProbability !== undefined}<div>
+										Legacy fragility: {(
+											assessment.result.details.fragilityProbability * 100
+										).toFixed(1)}%
+									</div>{/if}
 								<div>Exposure: {assessment.input.hazard.exposure ?? 'C'}</div>{/if}
 						</div>
 					</div>

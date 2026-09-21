@@ -113,22 +113,19 @@ const { defaultModelParameters, resolveModelParameters, parameterErrors } = load
 );
 const { assess } = load('src/lib/engine/assessment.ts');
 const defaults = resolveModelParameters(input);
-assert.equal(defaults.theta, 4800);
+assert.equal(defaults.windScoringMethod, 'fixed-reference-pressure');
 assert.equal(defaults.soilMultiplier, 0.87);
 near(defaults.kz, 1.04);
 const baseline = assess(input);
 assert.equal(baseline.earthquakeScore, 45);
-assert.equal(baseline.typhoonScore, 4);
-assert.equal(baseline.buildingResilienceScore, 76);
+assert.equal(baseline.typhoonScore, 64);
+assert.equal(baseline.buildingResilienceScore, calculateRisk(45, 64).buildingResilienceScore);
 const params = {
 	...defaultModelParameters(),
 	soilMode: 'custom',
 	soilMultiplier: 1.74,
-	fragilityMode: 'custom',
-	theta: 3000,
-	beta: 0.4,
-	damageState: 'Test damage state',
-	reference: 'Synthetic test reference',
+	windSpeedMin: 70,
+	windSpeedMax: 320,
 	kzt: 1.2,
 	kd: 0.9,
 	pgaMin: 0.1,
@@ -151,13 +148,7 @@ const changed = assess({
 });
 assert.equal(changed.typhoonScore, custom.typhoonScore);
 assert.equal(changed.details.pga, custom.details.pga);
-assert.equal(
-	resolveModelParameters({
-		...input,
-		building: { ...building, material: 'timber', roofType: 'hip' }
-	}).theta,
-	2880
-);
+
 assert.equal(
 	resolveModelParameters({ ...input, site: { ...input.site, soilType: 'soft' } }).soilMultiplier,
 	1.4
@@ -175,15 +166,13 @@ for (const earthquakeWeight of [0, 100]) {
 }
 for (const [key, bad] of [
 	['soilMultiplier', 0],
-	['theta', 0],
-	['beta', -1],
+	['windSpeedMin', -1],
+	['windSpeedMax', 70],
 	['kzt', 0.5],
 	['kd', 1.1],
 	['pgaMin', -1],
 	['pgaMax', 0.1],
-	['earthquakeWeight', 101],
-	['reference', ' '],
-	['damageState', '']
+	['earthquakeWeight', 101]
 ]) {
 	const badParameters = { ...params, [key]: bad };
 	assert.ok(parameterErrors(badParameters)[key]);
@@ -191,8 +180,8 @@ for (const [key, bad] of [
 }
 for (const key of [
 	'soilMultiplier',
-	'theta',
-	'beta',
+	'windSpeedMin',
+	'windSpeedMax',
 	'kzt',
 	'kd',
 	'pgaMin',
@@ -202,9 +191,9 @@ for (const key of [
 	assert.throws(() => assess({ ...input, modelParameters: { ...params, [key]: NaN } }));
 assert.throws(() => windToFragilityScore(0, building, { theta: 0, beta: 0.4 }));
 // A saved result keeps the resolved values even when the input object later changes.
-params.theta = 9000;
-assert.equal(custom.details.resolvedParameters.theta, 3000);
-assert.equal(custom.details.parameters.modelParameters.theta, 3000);
+params.windSpeedMax = 400;
+assert.equal(custom.details.resolvedParameters.windSpeedMax, 320);
+assert.equal(custom.details.parameters.modelParameters.windSpeedMax, 320);
 value = '[]';
 global.localStorage.setItem = (_, v) => {
 	value = v;
@@ -223,4 +212,97 @@ assert.equal(storage.getAssessments().length, 1);
 assert.equal(storage.getAssessments()[0].result.details.resolvedParameters, undefined);
 console.log(
 	'PASS: editable parameters, full assessment defaults/custom overrides, snapshots, legacy compatibility and invalid domains'
+);
+
+// Fixed-reference normalization: exact bounds, unit conversion, and independent building factors.
+const { referenceWindBounds, windToNormalizedScore } = load('src/lib/engine/wind.ts');
+const bounds = referenceWindBounds(61, 315);
+near(bounds.windReference.kz, 1);
+near(bounds.windPressureMin, 0.613 * 0.85 * (61 / 3.6) ** 2);
+near(bounds.windPressureMax, 0.613 * 0.85 * (315 / 3.6) ** 2);
+const score = (q) => windToNormalizedScore(q, bounds.windPressureMin, bounds.windPressureMax);
+assert.deepEqual(
+	[
+		score(0),
+		score(bounds.windPressureMin),
+		score((bounds.windPressureMin + bounds.windPressureMax) / 2),
+		score(bounds.windPressureMax),
+		score(bounds.windPressureMax * 2)
+	],
+	[0, 0, 50, 100, 100]
+);
+for (const pair of [
+	[-1, 315],
+	[315, 61],
+	[61, 61],
+	[NaN, 315],
+	[61, Infinity],
+	[0, Number.MAX_VALUE]
+])
+	assert.throws(() => referenceWindBounds(...pair));
+for (const args of [
+	[NaN, 0, 1],
+	[1, 2, 2],
+	[1, -1, 2],
+	[1, 0, Infinity]
+])
+	assert.throws(() => windToNormalizedScore(...args));
+const assessChange = (change) => assess({ ...input, ...change });
+assert.ok(
+	assessChange({ hazard: { ...input.hazard, windSpeed: 270 } }).typhoonScore > baseline.typhoonScore
+);
+assert.ok(
+	assessChange({ building: { ...building, height: 20 } }).typhoonScore > baseline.typhoonScore
+);
+assert.ok(
+	assessChange({ hazard: { ...input.hazard, exposure: 'D' } }).typhoonScore > baseline.typhoonScore
+);
+for (const factors of [{ kzt: 1.2 }, { kd: 1 }]) {
+	const r = assessChange({ modelParameters: { ...defaultModelParameters(), ...factors } });
+	assert.ok(r.typhoonScore > baseline.typhoonScore);
+	assert.equal(r.details.resolvedParameters.windPressureMax, bounds.windPressureMax);
+}
+assert.equal(
+	assessChange({
+		building: { ...building, material: 'timber', roofType: 'flat', configuration: 'irregular' }
+	}).typhoonScore,
+	baseline.typhoonScore
+);
+assert.equal(baseline.details.fragilityProbability, undefined);
+assert.equal(baseline.windScoringMethod, 'fixed-reference-pressure');
+// Preserve old resolved snapshots and original scores alongside new ones.
+const oldParameters = {
+	soilMode: 'default',
+	soilMultiplier: 0.87,
+	kzt: 1,
+	kd: 0.85,
+	kz: 1.04,
+	fragilityMode: 'default',
+	theta: 4800,
+	beta: 0.35,
+	damageState: 'Unspecified',
+	reference: 'Prototype',
+	pgaMin: 0,
+	pgaMax: 0.8,
+	earthquakeWeight: 50,
+	typhoonWeight: 50
+};
+const oldResult = {
+	...result,
+	modelVersion: 'paper-2026-09-parameters-2',
+	typhoonScore: 4,
+	details: { ...result.details, resolvedParameters: oldParameters }
+};
+value = JSON.stringify([{ id: 1, date: '2026-09-20T00:00:00Z', input, result: oldResult }]);
+assert.equal(storage.saveAssessment(input, baseline), true);
+const mixed = storage.getAssessments();
+assert.equal(mixed.length, 2);
+assert.equal(mixed[0].result.typhoonScore, 64);
+assert.deepEqual(mixed[1].result, oldResult);
+const broken = structuredClone(mixed[0]);
+delete broken.result.details.resolvedParameters;
+value = JSON.stringify([broken]);
+assert.equal(storage.getAssessments().length, 0);
+console.log(
+	'PASS: fixed-reference normalization, independent factors, capped ranges and mixed legacy/new history'
 );
