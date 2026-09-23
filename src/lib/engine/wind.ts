@@ -5,8 +5,8 @@
 // Fragility Equation: P(DS >= ds | IM) = Φ[ (ln(IM / θ)) / β ]
 // =========================================================================
 
-import { requireRange, requireChoice, requirePositive } from '$lib/engine/validation';
 import kzTable from '$lib/data/nscp-kz.json';
+import { requireChoice, requirePositive, requireRange } from '$lib/engine/validation';
 import type { BuildingInput, ExposureCategory } from '$lib/types';
 
 type KzRow = [number, number];
@@ -185,11 +185,17 @@ export const WIND_REFERENCE = Object.freeze({
 	kzt: 1,
 	kd: 0.85
 });
-export function referenceWindBounds(minSpeed: number, maxSpeed: number) {
+export function referenceWindBounds(
+	minSpeed: number,
+	maxSpeed: number,
+	height: number = WIND_REFERENCE.height
+) {
 	requireRange(minSpeed, 0, Number.MAX_VALUE, 'Minimum reference wind speed');
 	requireRange(maxSpeed, 0, Number.MAX_VALUE, 'Maximum reference wind speed');
+	requirePositive(height, 'Reference height');
+	requireRange(height, 0, 150, 'Reference height');
 	if (maxSpeed <= minSpeed) throw new RangeError('Maximum reference speed must exceed minimum.');
-	const { height, exposure, kzt, kd } = WIND_REFERENCE;
+	const { exposure, kzt, kd } = WIND_REFERENCE;
 	const windPressureMin = calculateWindPressure(minSpeed, height, exposure, kzt, kd);
 	const windPressureMax = calculateWindPressure(maxSpeed, height, exposure, kzt, kd);
 	if (
@@ -199,7 +205,7 @@ export function referenceWindBounds(minSpeed: number, maxSpeed: number) {
 	)
 		throw new RangeError('Reference pressures must be distinct and finite.');
 	return {
-		windReference: { ...WIND_REFERENCE, kz: getKz(height, exposure) },
+		windReference: { ...WIND_REFERENCE, height, kz: getKz(height, exposure) },
 		windPressureMin,
 		windPressureMax
 	};

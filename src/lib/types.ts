@@ -201,6 +201,7 @@ export interface ModelParameters {
 	soilMultiplier: number;
 	kzt: number;
 	kd: number;
+	windReferenceHeight: number; // reference height in meters for wind normalization
 	windSpeedMin: number; // reference km/h
 	windSpeedMax: number; // reference km/h
 	pgaMin: number;

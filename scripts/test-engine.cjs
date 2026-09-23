@@ -220,6 +220,9 @@ const bounds = referenceWindBounds(61, 315);
 near(bounds.windReference.kz, 1);
 near(bounds.windPressureMin, 0.613 * 0.85 * (61 / 3.6) ** 2);
 near(bounds.windPressureMax, 0.613 * 0.85 * (315 / 3.6) ** 2);
+const customReferenceBounds = referenceWindBounds(61, 315, 12);
+near(customReferenceBounds.windReference.height, 12);
+assert.ok(customReferenceBounds.windPressureMax > bounds.windPressureMax);
 const score = (q) => windToNormalizedScore(q, bounds.windPressureMin, bounds.windPressureMax);
 assert.deepEqual(
 	[

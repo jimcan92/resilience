@@ -2,7 +2,7 @@
 	import ParameterNumber from '$lib/components/ParameterNumber.svelte';
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import soilFactors from '$lib/data/soil-factors.json';
-	import { referenceWindBounds, getKz } from '$lib/engine/wind';
+	import { getKz, referenceWindBounds } from '$lib/engine/wind';
 	import type { AssessmentInput, ModelParameters } from '$lib/types';
 	let {
 		input,
@@ -21,7 +21,11 @@
 	];
 	let bounds = $derived.by(() => {
 		try {
-			return referenceWindBounds(parameters.windSpeedMin, parameters.windSpeedMax);
+			return referenceWindBounds(
+				parameters.windSpeedMin,
+				parameters.windSpeedMax,
+				parameters.windReferenceHeight
+			);
 		} catch {
 			return null;
 		}
@@ -40,6 +44,7 @@
 				: [
 						'kzt',
 						'kd',
+						'windReferenceHeight',
 						'windSpeedMin',
 						'windSpeedMax',
 						'pgaMin',
@@ -110,9 +115,16 @@
 					error={errors.windSpeedMax}
 				/>
 			</div>
+			<ParameterNumber
+				name="windReferenceHeight"
+				label="Reference height (m)"
+				hint="Height used only to convert reference wind-speed bounds to pressure. Default 10 m; this is not the building height."
+				bind:value={parameters.windReferenceHeight}
+				error={errors.windReferenceHeight}
+			/>
 			<p class="text-sm">
-				Fixed reference: 10 m height, Exposure C, Kz = 1, Kzt = 1, Kd = 0.85. These implementation
-				assumptions are independent of the actual building factors above.
+				Reference pressure uses {parameters.windReferenceHeight ?? 10} m height, Exposure C, Kzt = 1,
+				and Kd = 0.85. This reference height is independent of the actual building height above.
 			</p>
 			{#if bounds}<p class="text-sm">
 					Derived reference pressure: {bounds.windPressureMin.toFixed(

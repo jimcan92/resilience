@@ -14,10 +14,10 @@
 		<dd>{p.kz.toFixed(3)} / {p.kzt} / {p.kd}</dd>
 		{#if p.windScoringMethod === 'fixed-reference-pressure'}
 			<dt>Wind scoring method</dt>
-			<dd>Fixed-reference pressure normalization</dd>
+			<dd>Reference-pressure normalization</dd>
 			<dt>Reference wind speeds</dt>
 			<dd>{p.windSpeedMin}–{p.windSpeedMax} km/h</dd>
-			<dt>Reference conditions</dt>
+			<dt>Wind reference conditions</dt>
 			<dd>
 				{p.windReference.height} m, Exposure {p.windReference.exposure}; Kz {p.windReference.kz},
 				Kzt {p.windReference.kzt}, Kd {p.windReference.kd}
@@ -44,8 +44,8 @@
 	{#if p.windScoringMethod === 'fixed-reference-pressure'}
 		<p>
 			Default 61–315 km/h bounds were supplied by the researchers; their scientific source is
-			unverified. Reference conditions are implementation assumptions. Edited speed bounds are user
-			supplied.
+			unverified. The default reference height and other reference conditions are implementation
+			assumptions; reference height and speed bounds are user supplied parameters.
 		</p>
 		<p>Scores describe relative wind pressure, not damage probability.</p>
 	{:else}
