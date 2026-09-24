@@ -178,7 +178,7 @@ export function windToScore(pressurePa: number): number {
 	return windToFragilityScore(pressurePa).score;
 }
 
-/** Fixed implementation reference, independent of the assessed building. */
+/** Default reference conditions; exposure follows the assessed site when supplied. */
 export const WIND_REFERENCE = Object.freeze({
 	height: 10,
 	exposure: 'C' as const,
@@ -188,14 +188,15 @@ export const WIND_REFERENCE = Object.freeze({
 export function referenceWindBounds(
 	minSpeed: number,
 	maxSpeed: number,
-	height: number = WIND_REFERENCE.height
+	height: number = WIND_REFERENCE.height,
+	exposure: ExposureCategory = WIND_REFERENCE.exposure
 ) {
 	requireRange(minSpeed, 0, Number.MAX_VALUE, 'Minimum reference wind speed');
 	requireRange(maxSpeed, 0, Number.MAX_VALUE, 'Maximum reference wind speed');
 	requirePositive(height, 'Reference height');
 	requireRange(height, 0, 150, 'Reference height');
 	if (maxSpeed <= minSpeed) throw new RangeError('Maximum reference speed must exceed minimum.');
-	const { exposure, kzt, kd } = WIND_REFERENCE;
+	const { kzt, kd } = WIND_REFERENCE;
 	const windPressureMin = calculateWindPressure(minSpeed, height, exposure, kzt, kd);
 	const windPressureMax = calculateWindPressure(maxSpeed, height, exposure, kzt, kd);
 	if (
@@ -205,7 +206,7 @@ export function referenceWindBounds(
 	)
 		throw new RangeError('Reference pressures must be distinct and finite.');
 	return {
-		windReference: { ...WIND_REFERENCE, height, kz: getKz(height, exposure) },
+		windReference: { ...WIND_REFERENCE, height, exposure, kz: getKz(height, exposure) },
 		windPressureMin,
 		windPressureMax
 	};

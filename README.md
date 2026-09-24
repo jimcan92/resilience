@@ -167,14 +167,14 @@ The suitability of the magnitude scale, distance definition, equation, and soil 
 ```text
 V = windSpeed_kph / 3.6
 qz = 0.613 × Kz × Kzt × Kd × V²
-qMin = pressure(referenceSpeedMin, height=10 m, exposure=C, Kzt=1, Kd=0.85)
-qMax = pressure(referenceSpeedMax, height=10 m, exposure=C, Kzt=1, Kd=0.85)
+qMin = pressure(referenceSpeedMin, height=referenceHeight, exposure=selectedExposure, Kzt=1, Kd=0.85)
+qMax = pressure(referenceSpeedMax, height=referenceHeight, exposure=selectedExposure, Kzt=1, Kd=0.85)
 HT = round(100 × clamp((qz - qMin) / (qMax - qMin), 0, 1))
 ```
 
-The researcher-supplied default reference speeds are **61–315 km/h**; their scientific source has not been verified. The fixed reference conditions are **implementation assumptions**, not validated damage thresholds. Kz at the 10 m Exposure C reference is 1 in the bundled table, giving approximately **149.6–3,989.3 Pa**. The engine uses exact derived values, never these rounded display values.
+The researcher-supplied default reference speeds are **61–315 km/h**; their scientific source has not been verified. The reference conditions are **implementation assumptions**, not validated damage thresholds. Kz at the 10 m Exposure C reference is 1 in the bundled table, giving approximately **149.6–3,989.3 Pa**. The engine uses exact derived values, never these rounded display values.
 
-Actual pressure uses the assessed building's height, exposure, Kzt and Kd, independently of the reference. All pressures are in Pa internally and displayed in Pa or kPa (1 kPa = 1000 Pa). The reference speeds can be edited in Advanced settings; the reference conditions remain fixed in this version. Speeds must be finite with 0 ≤ minimum < maximum and yield distinct finite pressure bounds.
+Actual pressure uses the assessed building's height, exposure, Kzt and Kd. Reference pressure follows the selected exposure while using a separate reference height and fixed Kzt = 1 and Kd = 0.85. All pressures are in Pa internally and displayed in Pa or kPa (1 kPa = 1000 Pa). The reference speeds and reference height can be edited in Advanced settings (default height: 10 m). Speeds must be finite with 0 ≤ minimum < maximum and yield distinct finite pressure bounds.
 
 Scores below/above the pressure range are capped at 0/100 and the Results card identifies that condition while preserving actual pressure. This is a relative wind-hazard index, **not damage probability or structural resistance**. Material, roof and configuration no longer affect HT. Default form inputs produce HT = 64/100. Legacy fragility functions remain available for historical verification; new assessments do not use them.
 

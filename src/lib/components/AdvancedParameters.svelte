@@ -24,7 +24,8 @@
 			return referenceWindBounds(
 				parameters.windSpeedMin,
 				parameters.windSpeedMax,
-				parameters.windReferenceHeight
+				parameters.windReferenceHeight,
+				input.hazard.exposure ?? 'C'
 			);
 		} catch {
 			return null;
@@ -123,8 +124,9 @@
 				error={errors.windReferenceHeight}
 			/>
 			<p class="text-sm">
-				Reference pressure uses {parameters.windReferenceHeight ?? 10} m height, Exposure C, Kzt = 1,
-				and Kd = 0.85. This reference height is independent of the actual building height above.
+				Reference pressure uses {parameters.windReferenceHeight ?? 10} m height, Exposure {input
+					.hazard.exposure ?? 'C'}, Kzt = 1, and Kd = 0.85. This reference height is independent of
+				the actual building height above.
 			</p>
 			{#if bounds}<p class="text-sm">
 					Derived reference pressure: {bounds.windPressureMin.toFixed(

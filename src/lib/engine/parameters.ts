@@ -64,7 +64,12 @@ export function resolveModelParameters(input: AssessmentInput): NormalizedModelP
 		...p,
 		soilMultiplier,
 		windScoringMethod: 'fixed-reference-pressure',
-		...referenceWindBounds(p.windSpeedMin, p.windSpeedMax, p.windReferenceHeight ?? 10),
+		...referenceWindBounds(
+			p.windSpeedMin,
+			p.windSpeedMax,
+			p.windReferenceHeight ?? 10,
+			input.hazard.exposure ?? 'C'
+		),
 		kz: getKz(input.building.height, input.hazard.exposure ?? 'C'),
 		typhoonWeight: 100 - p.earthquakeWeight
 	};
@@ -85,7 +90,7 @@ export function isResolvedModelParameters(value: unknown): value is ResolvedMode
 			Object.keys(parameterErrors(p)).length === 0 &&
 			!!r &&
 			r.height === (p.windReferenceHeight ?? 10) &&
-			r.exposure === 'C' &&
+			['B', 'C', 'D'].includes(r.exposure) &&
 			r.kzt === 1 &&
 			r.kd === 0.85 &&
 			Number.isFinite(r.kz) &&

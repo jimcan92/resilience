@@ -257,9 +257,31 @@ assert.ok(
 assert.ok(
 	assessChange({ building: { ...building, height: 20 } }).typhoonScore > baseline.typhoonScore
 );
-assert.ok(
-	assessChange({ hazard: { ...input.hazard, exposure: 'D' } }).typhoonScore > baseline.typhoonScore
-);
+for (const exposure of ['B', 'C', 'D']) {
+	const selectedInput = { ...input, hazard: { ...input.hazard, exposure } };
+	const selected = assess(selectedInput);
+	const resolved = selected.details.resolvedParameters;
+	assert.equal(resolved.windReference.exposure, exposure);
+	near(resolved.windPressureMin, calculateWindPressure(61, 10, exposure));
+	near(resolved.windPressureMax, calculateWindPressure(315, 10, exposure));
+	assert.equal(
+		selected.typhoonScore,
+		windToNormalizedScore(
+			calculateWindPressure(input.hazard.windSpeed, input.building.height, exposure),
+			resolved.windPressureMin,
+			resolved.windPressureMax
+		)
+	);
+	value = '[]';
+	assert.equal(storage.saveAssessment(selectedInput, selected), true);
+	assert.equal(
+		storage.getAssessments()[0].result.details.resolvedParameters.windReference.exposure,
+		exposure
+	);
+}
+assert.ok(referenceWindBounds(61, 315, 10, 'B').windPressureMax < bounds.windPressureMax);
+assert.ok(referenceWindBounds(61, 315, 10, 'D').windPressureMax > bounds.windPressureMax);
+assert.throws(() => referenceWindBounds(61, 315, 10, 'A'));
 for (const factors of [{ kzt: 1.2 }, { kd: 1 }]) {
 	const r = assessChange({ modelParameters: { ...defaultModelParameters(), ...factors } });
 	assert.ok(r.typhoonScore > baseline.typhoonScore);
